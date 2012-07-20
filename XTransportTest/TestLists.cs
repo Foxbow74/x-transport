@@ -1,0 +1,71 @@
+﻿using System.Diagnostics;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using XTransportTest.Client;
+
+namespace XTransportTest
+{
+	[TestClass]
+	public class TestLists : AbstractTest
+	{
+		[TestMethod]
+		public void GetList()
+		{
+			var cl = new TstClient();
+			var pr = cl.GetRoot<Root>().ParentItems[0];
+			Assert.AreEqual(2, pr.Children.Count);
+		}
+
+		[TestMethod]
+		public void Parent()
+		{
+			var cl = new TstClient();
+			var pr = cl.GetRoot<Root>().ParentItems[0];
+			foreach (var child in pr.Children)
+			{
+				Assert.AreEqual(pr, child.Parent);
+			}
+		}
+
+		[TestMethod]
+		public void Add()
+		{
+			var cl = new TstClient();
+			foreach (var parentItem in cl.GetRoot<Root>().ParentItems)
+			{
+				Debug.WriteLine(parentItem.GetHashCode());
+			}
+			var pr = cl.GetRoot<Root>().ParentItems[0];
+			var child = new Child {Value = 3.0};
+			pr.Children.Add(child);
+			Assert.AreEqual(pr, child.Parent);
+		}
+
+		[TestMethod]
+		public void Undo()
+		{
+			var cl = new TstClient();
+			var pr = cl.GetRoot<Root>().ParentItems[0];
+			Wait();
+			var clientSideChild = new Child {Value = 3.0};
+			pr.Children.Add(clientSideChild);
+			cl.Undo(pr.Uid);
+			Assert.AreEqual(2, pr.Children.Count);
+		}
+
+		[TestMethod]
+		public void Redo()
+		{
+			var cl = new TstClient();
+			var pr = cl.GetRoot<Root>().ParentItems[0];
+			var child = new Child {Value = 3.0};
+			Wait();
+			var cnt = pr.Children.Count;
+			pr.Children.Add(child);
+			cl.Undo(pr.Uid);
+			Assert.AreEqual(cnt, pr.Children.Count);
+			cl.Redo(pr.Uid);
+			Assert.AreEqual(true, pr.Children.SingleOrDefault(_child => _child.Uid == child.Uid) != null);
+		}
+	}
+}

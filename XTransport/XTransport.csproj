@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{171F736D-E4BB-438A-9D56-6F8E238814C0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>XTransport</RootNamespace>
+    <AssemblyName>XTransport</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Community.CsharpSqlite">
+      <HintPath>..\ThirdParty\Community.CsharpSqlite.dll</HintPath>
+    </Reference>
+    <Reference Include="Community.CsharpSqlite.SQLiteClient">
+      <HintPath>..\ThirdParty\Community.CsharpSqlite.SQLiteClient.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AbstractXObject.cs" />
+    <Compile Include="AbstractXReportItem.cs" />
+    <Compile Include="Client\AbstractXClient.cs" />
+    <Compile Include="Client\AbstractXValue.cs" />
+    <Compile Include="Client\ClientXChildObject.cs" />
+    <Compile Include="Server\ServerXObjectContainer.cs" />
+    <Compile Include="Server\ServerXObjectRoot.cs" />
+    <Compile Include="Server\Storage\IStorage.cs" />
+    <Compile Include="Server\Storage\IStorageRecord.cs" />
+    <Compile Include="Server\Storage\IStorageValue.cs" />
+    <Compile Include="SQLiteStorage.cs" />
+    <Compile Include="Server\Storage\StorageChild.cs" />
+    <Compile Include="Server\Storage\StorageObject.cs" />
+    <Compile Include="Server\Storage\StorageRootObject.cs" />
+    <Compile Include="Server\Storage\StorageValue.cs" />
+    <Compile Include="Server\Storage\UplodableObject.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="WCF\XTransportClient.cs" />
+    <Compile Include="WCF\IXTransportContract.cs" />
+    <Compile Include="WCF\IXTransportCallback.cs" />
+    <Compile Include="WCF\XTransportService.cs" />
+    <Compile Include="WPF\AbstractModule.cs" />
+    <Compile Include="WPF\ClientXChildObjectVM.cs" />
+    <Compile Include="Client\ClientXObject.cs" />
+    <Compile Include="WPF\ClientXObjectVM.cs" />
+    <Compile Include="Client\IClientXChildObject.cs" />
+    <Compile Include="Client\IClientXObject.cs" />
+    <Compile Include="Client\IClientXObjectInternal.cs" />
+    <Compile Include="Client\IClientXObjectVM.cs" />
+    <Compile Include="Client\IXClientUserInternal.cs" />
+    <Compile Include="Client\IXList.cs" />
+    <Compile Include="IXValue.cs" />
+    <Compile Include="Client\IXValueInternal.cs" />
+    <Compile Include="Client\ClientXObjectDescriptor.cs" />
+    <Compile Include="Client\XList.cs" />
+    <Compile Include="Client\XRef.cs" />
+    <Compile Include="EReportListItemState.cs" />
+    <Compile Include="IXObject.cs" />
+    <Compile Include="Server\IServerXValue.cs" />
+    <Compile Include="Server\ServerXReport.cs" />
+    <Compile Include="Server\ServerXList.cs" />
+    <Compile Include="Server\ServerXRef.cs" />
+    <Compile Include="Server\ServerXValue.cs" />
+    <Compile Include="Server\Session.cs" />
+    <Compile Include="Server\SessionId.cs" />
+    <Compile Include="WPF\ModuleRegistrator.cs" />
+    <Compile Include="XAttribute.cs" />
+    <Compile Include="Client\XValue.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Server\AbstractXServer.cs" />
+    <Compile Include="XFieldInfo.cs" />
+    <Compile Include="XReport.cs" />
+    <Compile Include="XReportItem.cs" />
+    <Compile Include="XReportItemState.cs" />
+    <Compile Include="XReportList.cs" />
+    <Compile Include="XReportListItem.cs" />
+    <Compile Include="WCF\XTransportConfiguration.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
