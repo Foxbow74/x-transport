@@ -54,7 +54,7 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 			var root = cl.GetRoot<Root>();
-			var a = root.AItems[0];
+			var a = root.AItems.First();
 			var cnt = root.AItems.Count;
 			root.All.Remove(a);
 			Assert.IsFalse(root.AItems.Contains(a));
@@ -67,7 +67,7 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 			var root = cl.GetRoot<Root>();
-			var a = root.AItems[0];
+			var a = root.AItems.First();
 			var cnt = root.All.Count;
 			var cntab = root.AB.Count;
 			root.AItems.Remove(a);

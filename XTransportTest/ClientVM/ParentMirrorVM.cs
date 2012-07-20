@@ -7,19 +7,19 @@ namespace XTransportTest.ClientVM
 {
 	internal class ParentMirrorVM : XObjectVM
 	{
-		[X("LIST")] private IList<ChildMirrorVM> m_value;
+		[X("LIST")] private ICollection<ChildMirrorVM> m_value;
 
 		public override ETestKind Kind
 		{
 			get { return ETestKind.PARENT; }
 		}
 
-		public IList<ChildMirrorVM> Children
+		public ICollection<ChildMirrorVM> Children
 		{
 			get { return m_value; }
 		}
 
-		public IList<ChildMirrorVM> List
+		public ICollection<ChildMirrorVM> List
 		{
 			get { return m_value; }
 		}

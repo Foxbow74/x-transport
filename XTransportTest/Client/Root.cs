@@ -5,46 +5,46 @@ namespace XTransportTest.Client
 {
 	internal class Root : XObject
 	{
-		[X((int) ETestKind.A)] private IList<A> m_aItems;
+		[X((int) ETestKind.A)] private ICollection<A> m_aItems;
 
-		[X((int) ETestKind.B)] private IList<B> m_bItems;
+		[X((int) ETestKind.B)] private ICollection<B> m_bItems;
 
-		[X((int) ETestKind.PARENT)] private IList<Parent> m_parentItems;
+		[X((int) ETestKind.PARENT)] private ICollection<Parent> m_parentItems;
 
-		[X((int)ETestKind.REF)] private IList<RefObject> m_refItems;
-
-		[XFactory(typeof(TestFactory))]
-		[X((int)ETestKind.ALL)]private IList<XObject> m_all;
+		[X((int)ETestKind.REF)] private ICollection<RefObject> m_refItems;
 
 		[XFactory(typeof(TestFactory))]
-		[X((int)ETestKind.AB)]private IList<XObject> m_ab;
+		[X((int)ETestKind.ALL)]private ICollection<XObject> m_all;
 
-		public IList<XObject> All
+		[XFactory(typeof(TestFactory))]
+		[X((int)ETestKind.AB)]private ICollection<XObject> m_ab;
+
+		public ICollection<XObject> All
 		{
 			get { return m_all; }
 		}
 
-		public IList<XObject> AB
+		public ICollection<XObject> AB
 		{
 			get { return m_ab; }
 		}
 
-		public IList<A> AItems
+		public ICollection<A> AItems
 		{
 			get { return m_aItems; }
 		}
 
-		public IList<B> BItems
+		public ICollection<B> BItems
 		{
 			get { return m_bItems; }
 		}
 
-		public IList<Parent> ParentItems
+		public ICollection<Parent> ParentItems
 		{
 			get { return m_parentItems; }
 		}
 
-		public IList<RefObject> RefItems
+		public ICollection<RefObject> RefItems
 		{
 			get { return m_refItems; }
 		}

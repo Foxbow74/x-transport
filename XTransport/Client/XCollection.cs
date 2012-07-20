@@ -8,11 +8,11 @@ using System.Windows.Threading;
 
 namespace XTransport.Client
 {
-	internal sealed class XList<T, TKind> : AbstractXValue, IList<T>, IXList<TKind>
+	internal sealed class XCollection<T, TKind> : AbstractXValue, ICollection<T>, IXCollection<TKind>
 		where T : ClientXObject<TKind>
 	{
 		private readonly IXObjectFactory<TKind> m_factory;
-		private readonly List<T> m_list = new List<T>();
+		private readonly Dictionary<Guid, T> m_list = new Dictionary<Guid, T>();
 		private readonly List<T> m_original = new List<T>();
 		private AbstractXClient<TKind> m_client;
 		private bool m_isDirty;
@@ -24,12 +24,12 @@ namespace XTransport.Client
 		private Dispatcher m_uiDispatcher;
 		private int m_fieldId;
 
-		internal XList(IXObjectFactory<TKind> _factory)
+		internal XCollection(IXObjectFactory<TKind> _factory)
 		{
 			m_factory = _factory;
 		}
 
-	 	internal XList()
+	 	internal XCollection()
 		{
 		}
 
@@ -37,7 +37,7 @@ namespace XTransport.Client
 
 		public IEnumerator<T> GetEnumerator()
 		{
-			return m_list.GetEnumerator();
+			return m_list.Values.GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
@@ -47,7 +47,7 @@ namespace XTransport.Client
 
 		public void Add(T _item)
 		{
-			m_list.Add(_item);
+			m_list.Add(_item.Uid, _item);
 			AddedToCollection(_item);
 			UpdateVM(() => m_observableCollection.Add(_item));
 		}
@@ -59,7 +59,7 @@ namespace XTransport.Client
 			m_list.Clear();
 			foreach (var item in items)
 			{
-				RemovedFromCollection(item);
+				RemovedFromCollection(item.Value);
 			}
 			OnChanged();
 			UpdateVM(() => m_observableCollection.Clear());
@@ -67,17 +67,17 @@ namespace XTransport.Client
 
 		public bool Contains(T _item)
 		{
-			return m_list.Contains(_item);
+			return m_list.ContainsKey(_item.Uid);
 		}
 
 		public void CopyTo(T[] _array, int _arrayIndex)
 		{
-			m_list.CopyTo(_array, _arrayIndex);
+			m_list.Values.CopyTo(_array, _arrayIndex);
 		}
 
 		public bool Remove(T _item)
 		{
-			if (m_list.Remove(_item))
+			if (m_list.Remove(_item.Uid))
 			{
 				RemovedFromCollection(_item);
 				UpdateVM(() => m_observableCollection.Remove(_item));
@@ -96,44 +96,16 @@ namespace XTransport.Client
 			get { return false; }
 		}
 
-		public int IndexOf(T _item)
-		{
-			return m_list.IndexOf(_item);
-		}
-
-		public void Insert(int _index, T _item)
-		{
-			m_list.Insert(_index, _item);
-			AddedToCollection(_item);
-			UpdateVM(() => m_observableCollection.Insert(_index, _item));
-		}
-
-		public void RemoveAt(int _index)
-		{
-			Remove(m_list[_index]);
-		}
-
-		public T this[int _index]
-		{
-			get { return m_list[_index]; }
-			set
-			{
-				m_list[_index] = value;
-				OnChanged();
-				UpdateVM(() => m_observableCollection[_index] = value);
-			}
-		}
-
 		#endregion
 
-		#region IXList<TKind> Members
+		#region IXCollection<TKind> Members
 
 		void IXClientUserInternal<TKind>.SetClient(AbstractXClient<TKind> _client)
 		{
 			m_client = _client;
 		}
 
-		void IXList<TKind>.SetOwnerInfo(IClientXObjectInternal<TKind> _xObject, int _fieldId)
+		void IXCollection<TKind>.SetOwnerInfo(IClientXObjectInternal<TKind> _xObject, int _fieldId)
 		{
 			m_owner = _xObject;
 			m_fieldId = _fieldId;
@@ -141,12 +113,12 @@ namespace XTransport.Client
 
 		public IEnumerable<Guid> GetUids()
 		{
-			return m_list.Select(_item => _item.Uid);
+			return m_list.Keys;
 		}
 
 		public void AddSilently(IXObject<TKind> _item)
 		{
-			m_list.Add((T)_item);
+			m_list.Add(_item.Uid, (T)_item);
 			UpdateVM(() => m_observableCollection.Add((T)_item));
 		}
 
@@ -154,7 +126,7 @@ namespace XTransport.Client
 		{
 			if (_item is T)
 			{
-				m_list.Remove((T) _item);
+				m_list.Remove(_item.Uid);
 			}
 		}
 
@@ -177,8 +149,8 @@ namespace XTransport.Client
 			}
 #endif
 			var items = new List<XReportListItem>();
-			items.AddRange(m_list.Except(m_original).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.ADDED)));
-			items.AddRange(m_original.Except(m_list).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.REMOVED)));
+			items.AddRange(m_list.Values.Except(m_original).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.ADDED)));
+			items.AddRange(m_original.Except(m_list.Values).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.REMOVED)));
 			var rl = new XReportList(_xname, XReportItemState.CHANGE, items);
 			return rl;
 		}
@@ -221,7 +193,7 @@ namespace XTransport.Client
 								Add(add);
 								break;
 							case EReportListItemState.REMOVED:
-								Remove(m_list.Single(_arg => _arg.Uid == item.Uid));
+								Remove(m_list.Values.Single(_arg => _arg.Uid == item.Uid));
 								break;
 							default:
 								throw new ArgumentOutOfRangeException();
@@ -236,7 +208,7 @@ namespace XTransport.Client
 
 		public override void Revert()
 		{
-			var objects = m_list.ToArray();
+			var objects = m_list.Values.ToArray();
 			foreach (var obj in objects)
 			{
 				if (!m_original.Contains(obj))
@@ -262,7 +234,7 @@ namespace XTransport.Client
 			if (IsDirtyAndHaveReportItems)
 			{
 				m_original.Clear();
-				m_original.AddRange(m_list);
+				m_original.AddRange(m_list.Values);
 			}
 			m_isDirty = false;
 			m_isDirtyAndHaveReportItems = false;
@@ -314,7 +286,7 @@ namespace XTransport.Client
 			if (m_observableCollection == null)
 			{
 				m_uiDispatcher = Dispatcher.CurrentDispatcher;
-				m_observableCollection = new ObservableCollection<T>(m_list);
+				m_observableCollection = new ObservableCollection<T>(m_list.Values);
 			}
 			return new ReadOnlyObservableCollection<T>(m_observableCollection);
 		}
@@ -343,14 +315,14 @@ namespace XTransport.Client
 
 		private bool RecalcIsDirty()
 		{
-			return m_list.Any(_arg => _arg.IsDirty);
+			return m_list.Values.Any(_arg => _arg.IsDirty);
 		}
 
 		private bool RecalcIsDirtyAndHaveReportItems()
 		{
 			if (m_list.Count != m_original.Count) return true;
-			if (m_list.Except(m_original).Any()) return true;
-			if (m_original.Except(m_list).Any()) return true;
+			if (m_list.Values.Except(m_original).Any()) return true;
+			if (m_original.Except(m_list.Values).Any()) return true;
 			return false;
 		}
 

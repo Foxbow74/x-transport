@@ -50,11 +50,11 @@ namespace XTransport.Client
 
 				var constructor = fieldInfo.FieldType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null,
 				                                                     Type.EmptyTypes, null);
-				if (typeof (IList<>).MakeGenericType(genericArgumentType).IsAssignableFrom(fieldInfo.FieldType))
+				if (typeof (ICollection<>).MakeGenericType(genericArgumentType).IsAssignableFrom(fieldInfo.FieldType))
 				{
 					if (typeof (IClientXObjectInternal<TKind>).IsAssignableFrom(genericArgumentType))
 					{
-						var tp = typeof (XList<,>).MakeGenericType(new[] {genericArgumentType, typeof (TKind)});
+						var tp = typeof (XCollection<,>).MakeGenericType(new[] {genericArgumentType, typeof (TKind)});
 						if (genericArgumentType.IsAbstract)
 						{
 							constructor = tp.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null,
@@ -132,7 +132,7 @@ namespace XTransport.Client
 				{
 					xfield = (IXValueInternal) info.Constructor.Invoke(new object[] {info.Factory,});
 				}
-				var xlist = xfield as IXList<TKind>;
+				var xlist = xfield as IXCollection<TKind>;
 				if (xlist!=null)
 				{
 					xlist.SetOwnerInfo(this, info.FieldId);
@@ -180,7 +180,7 @@ namespace XTransport.Client
 
 		public IEnumerable<Guid> GetChildUids()
 		{
-			foreach (var list in m_xValues.Values.OfType<IXList<TKind>>())
+			foreach (var list in m_xValues.Values.OfType<IXCollection<TKind>>())
 			{
 				foreach (var uid in list.GetUids())
 				{
@@ -194,7 +194,7 @@ namespace XTransport.Client
 			IXValueInternal xValueInternal;
 			if (m_xValues.TryGetValue(_kind, out xValueInternal))
 			{
-				var list = xValueInternal as IXList<TKind>;
+				var list = xValueInternal as IXCollection<TKind>;
 				if(list!=null)
 				{
 					list.AddSilently(_item);
@@ -204,7 +204,7 @@ namespace XTransport.Client
 
 		public void RemovedFromCollection<T>(T _item) where T : ClientXObject<TKind>
 		{
-			foreach (var list in m_xValues.Values.OfType<IXList<TKind>>())
+			foreach (var list in m_xValues.Values.OfType<IXCollection<TKind>>())
 			{
 				list.RemoveSilently(_item);
 			}	

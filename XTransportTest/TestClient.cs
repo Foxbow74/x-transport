@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XTransportTest.Client;
 
@@ -17,8 +18,8 @@ namespace XTransportTest
 		public void GetA()
 		{
 			var cl = new TstClient();
-			var a1 = cl.GetRoot<Root>().AItems[0];
-			var a2 = cl.GetRoot<Root>().AItems[1];
+			var a1 = cl.GetRoot<Root>().AItems.First();
+			var a2 = cl.GetRoot<Root>().AItems.ToList()[1];
 			Console.WriteLine(a1);
 			Console.WriteLine(a2);
 		}
@@ -27,15 +28,15 @@ namespace XTransportTest
 		public void GetB()
 		{
 			var cl = new TstClient();
-			Assert.AreNotEqual(null,cl.GetRoot<Root>().BItems[0]);
-			Assert.AreNotEqual(null,cl.GetRoot<Root>().BItems[1]);
+			Assert.AreNotEqual(null, cl.GetRoot<Root>().BItems.First());
+			Assert.AreNotEqual(null, cl.GetRoot<Root>().BItems.ToList()[1]);
 		}
 
 		[TestMethod]
 		public void IsDirty()
 		{
 			var cl = new TstClient();
-			var a = cl.GetRoot<Root>().AItems[0];
+			var a = cl.GetRoot<Root>().AItems.First();
 			a.Value = 10;
 			Assert.AreEqual(a.IsDirty, true);
 		}
@@ -44,7 +45,7 @@ namespace XTransportTest
 		public void ChangeAMirror()
 		{
 			var cl = new TstClient();
-			var a = cl.GetRoot<Root>().AItems[0];
+			var a = cl.GetRoot<Root>().AItems.First();
 			a.Value = 10;
 
 			var am = cl.Get<AMirror>(a.Uid);

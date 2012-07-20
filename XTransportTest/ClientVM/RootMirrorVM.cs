@@ -6,16 +6,16 @@ namespace XTransportTest.ClientVM
 {
 	internal class RootMirrorVM : XObjectVM
 	{
-		[X((int) ETestKind.A)] private IList<AMirrorVM> m_aItems;
+		[X((int) ETestKind.A)] private ICollection<AMirrorVM> m_aItems;
 
-		[X((int) ETestKind.PARENT)] private IList<ParentMirrorVM> m_parentItems;
+		[X((int) ETestKind.PARENT)] private ICollection<ParentMirrorVM> m_parentItems;
 
-		public IList<AMirrorVM> AItems
+		public ICollection<AMirrorVM> AItems
 		{
 			get { return m_aItems; }
 		}
 
-		public IList<ParentMirrorVM> ParentItems
+		public ICollection<ParentMirrorVM> ParentItems
 		{
 			get { return m_parentItems; }
 		}

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace XTransport.Client
 {
-	internal interface IXList<TKind> : IXValueInternal, IXClientUserInternal<TKind>
+	internal interface IXCollection<TKind> : IXValueInternal, IXClientUserInternal<TKind>
 	{
 		void SetOwnerInfo(IClientXObjectInternal<TKind> _xObject, int _fieldId);
 		IEnumerable<Guid> GetUids();

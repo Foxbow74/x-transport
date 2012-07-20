@@ -74,10 +74,10 @@ namespace XTransport.WPF
 			m_actions.Add((IXValueInternal) _field, _handler);
 		}
 
-		protected ReadOnlyObservableCollection<TP> CreateObservableCollection<TP>(IList<TP> _field)
+		protected ReadOnlyObservableCollection<TP> CreateObservableCollection<TP>(ICollection<TP> _field)
 			where TP : ClientXObject<TKind>
 		{
-			var list = (XList<TP, TKind>) _field;
+			var list = (XCollection<TP, TKind>) _field;
 			ReadOnlyObservableCollection<TP> result = null;
 			m_uiDispatcher.Invoke(DispatcherPriority.Background,
 			                      new ThreadStart(delegate { result = list.CreateObservableCollection(); }));

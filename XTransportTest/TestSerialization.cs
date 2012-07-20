@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
@@ -16,7 +17,7 @@ namespace XTransportTest
 		public void Serialize()
 		{
 			var cl = new TstClient();
-			var a = cl.GetRoot<Root>().AItems[0];
+			var a = cl.GetRoot<Root>().AItems.First();
 			a.Value = 10;
 			var report = new XReport(a.Uid, ((IClientXObjectInternal<ETestKind>) a).GetChanges(), a.Stored, (int) a.Kind);
 

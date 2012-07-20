@@ -12,7 +12,7 @@ namespace XTransportTest
 		public void Undo0()
 		{
 			var cl = new TstClient();
-			var a = cl.GetRoot<RootVM>().AItems[0];
+			var a = cl.GetRoot<RootVM>().AItems.First();
 			var init = a.Value;
 			Wait();
 			a.Value = 10;

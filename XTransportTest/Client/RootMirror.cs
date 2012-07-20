@@ -5,16 +5,16 @@ namespace XTransportTest.Client
 {
 	internal class RootMirror : XObject
 	{
-		[X((int) ETestKind.A)] private IList<AMirror> m_aItems;
+		[X((int) ETestKind.A)] private ICollection<AMirror> m_aItems;
 
-		[X((int) ETestKind.REF)] private IList<RefMirror> m_refItems;
+		[X((int) ETestKind.REF)] private ICollection<RefMirror> m_refItems;
 
-		public IList<AMirror> AItems
+		public ICollection<AMirror> AItems
 		{
 			get { return m_aItems; }
 		}
 
-		public IList<RefMirror> RefItems
+		public ICollection<RefMirror> RefItems
 		{
 			get { return m_refItems; }
 		}
