@@ -1,0 +1,27 @@
+﻿<UserControl x:Class="ClientModuleUsers.Views.UsersBrowserView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:VMs="clr-namespace:ClientModuleUsers.VMs" xmlns:Views="clr-namespace:ClientModuleUsers.Views" xmlns:res="clr-namespace:AlphaStudioResources;assembly=AlphaStudioResources" xmlns:cc="clr-namespace:ClientCommonWpf;assembly=ClientCommonWpf" mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" res:SharedResources.MergedDictionaries="AlphaDictionary">
+	<UserControl.Resources>
+		<DataTemplate DataType="{x:Type VMs:UserLinkVM}">
+			<Views:UserLinkView/>
+		</DataTemplate>
+	</UserControl.Resources>
+    <Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<ToolBar Grid.Row="0">
+			<Button Command="{Binding AddNewUserCommand}" cc:ButtonProperties.Image="{DynamicResource ImgUserAdd}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgUserAddDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Add new user"/>
+			<Button Command="{Binding DeleteUserCommand}" cc:ButtonProperties.Image="{DynamicResource ImgUserDelete}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgUserDeleteDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Delete user"/>
+		</ToolBar>
+		<ListBox x:Name="m_list" ItemsSource="{Binding Users}" Grid.Row="1" SelectedItem="{Binding SelectedItem}">
+			<ListBox.InputBindings>
+				<KeyBinding Key="Enter" Command="{Binding OpenCommand}"/>
+			</ListBox.InputBindings>
+		</ListBox>
+	</Grid>
+</UserControl>

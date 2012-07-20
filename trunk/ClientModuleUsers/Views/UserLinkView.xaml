@@ -1,0 +1,17 @@
+﻿<UserControl x:Class="ClientModuleUsers.Views.UserLinkView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:AlphaStudioResources="clr-namespace:AlphaStudioResources;assembly=AlphaStudioResources" mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="200">
+	<Grid>
+		<TextBlock Text="{Binding Name}" MinWidth="200" Margin="0,0,0,2">
+			<TextBlock.InputBindings>
+				<MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenCommand}"/>
+			</TextBlock.InputBindings>
+			<TextBlock.ContextMenu>
+				<ContextMenu ItemsSource="{Binding SpecificDocumentVMs}" AlphaStudioResources:SharedResources.MergedDictionaries="AlphaDescriptorsDictionary"/>
+			</TextBlock.ContextMenu>
+		</TextBlock>
+	</Grid>
+</UserControl>

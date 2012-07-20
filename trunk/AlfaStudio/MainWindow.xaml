@@ -1,0 +1,60 @@
+﻿<Window x:Class="AlfaStudio.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+		xmlns:ad="clr-namespace:AvalonDock;assembly=AvalonDock" 
+		xmlns:cc="clr-namespace:ClientCommonWpf;assembly=ClientCommonWpf" 
+		xmlns:res="clr-namespace:AlphaStudioResources;assembly=AlphaStudioResources" xmlns:AlfaStudio="clr-namespace:AlfaStudio" Title="MainWindow" WindowState="Maximized" Width="600" Height="600" 
+		res:SharedResources.MergedDictionaries="AlphaDictionary">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<Menu>
+			<Menu.Resources>
+				<Style TargetType="{x:Type MenuItem}">
+					<Style.Setters>
+						<Setter Property="Header" Value="{Binding Descriptor.Name}"/>
+						<Setter Property="InputGestureText" Value="{Binding InputGestureText}"/>
+						<Setter Property="Command" Value="{Binding OpenCommand}"/>
+					</Style.Setters>
+				</Style>
+			</Menu.Resources>
+			<MenuItem Header="Root" ItemsSource="{Binding RootTools}"/>
+			<MenuItem Header="Tools" ItemsSource="{Binding Tools}"/>
+		</Menu>
+		<Grid Grid.Row="1">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+			<ToolBarTray IsLocked="True">
+				<ToolBar>
+					<Button Command="{Binding NewPageCommand}" cc:ButtonProperties.Image="{DynamicResource ImgBlank}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgBlankDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Open new blank page"/>
+					<Button Command="{Binding BackCommand}" cc:ButtonProperties.Image="{DynamicResource ImgBackward}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgBackwardDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Backward"/>
+					<Button Command="{Binding ForwardCommand}" cc:ButtonProperties.Image="{DynamicResource ImgForward}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgForwardDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Forward"/>
+					<Button Command="{Binding CloseCommand}" cc:ButtonProperties.Image="{DynamicResource ImgClose}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgCloseDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Close page"/>
+				</ToolBar>
+			</ToolBarTray>
+			<AlfaStudio:AddressString Grid.Column="1" Margin="5"/>
+		</Grid>
+		<ToolBarTray Grid.Row="2" Orientation="Horizontal">
+			<ToolBar Band="1" BandIndex="0">
+				<Button Command="{Binding RevertCommand}" cc:ButtonProperties.Image="{DynamicResource ImgRevert}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgRevertDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Revert"/>
+				<Button Command="{Binding UndoCommand}" cc:ButtonProperties.Image="{DynamicResource ImgUndo}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgUndoDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Undo"/>
+				<Button Command="{Binding RedoCommand}" cc:ButtonProperties.Image="{DynamicResource ImgRedo}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgRedoDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Redo"/>
+				<Button Command="{Binding SaveCommand}" cc:ButtonProperties.Image="{DynamicResource ImgSave}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgSaveDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Save"/>
+			</ToolBar>
+		</ToolBarTray>
+		<ad:DockingManager x:Name="m_manager" Grid.Row="3" DocumentsSource="{Binding Documents}">
+			<ad:ResizingPanel>
+				<ad:DockablePane/>
+				<ad:DocumentPane/>
+			</ad:ResizingPanel>
+		</ad:DockingManager>
+	</Grid>
+</Window>

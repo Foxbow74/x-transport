@@ -1,0 +1,38 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:cc="clr-namespace:ClientCommonWpf;assembly=ClientCommonWpf" xmlns:AvalonDock="clr-namespace:AvalonDock;assembly=AvalonDock">
+
+	<SolidColorBrush x:Key="Red" Color="Red"></SolidColorBrush>
+	<Style x:Key="ImageButton" TargetType="Button">
+		<Style.Triggers>
+			<Trigger Property="IsEnabled" Value="True">
+				<Trigger.Setters>
+					<Setter Property="ContentTemplate">
+						<Setter.Value>
+							<DataTemplate>
+								<StackPanel Orientation="Horizontal">
+									<Image Width="24" Source="{Binding Path=(cc:ButtonProperties.Image), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}"></Image>
+									<ContentPresenter Content="{Binding Path=Content, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}"></ContentPresenter>
+								</StackPanel>
+							</DataTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger.Setters>
+			</Trigger>
+			<Trigger Property="IsEnabled" Value="False">
+				<Trigger.Setters>
+					<Setter Property="ContentTemplate">
+						<Setter.Value>
+							<DataTemplate>
+								<StackPanel Orientation="Horizontal">
+									<Image Width="24" Source="{Binding Path=(cc:ButtonProperties.DisabledImage), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}"></Image>
+									<ContentPresenter Content="{Binding Path=Content, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}"></ContentPresenter>
+								</StackPanel>
+							</DataTemplate>
+						</Setter.Value>
+					</Setter>
+				</Trigger.Setters>
+			</Trigger>
+		</Style.Triggers>
+	</Style>
+</ResourceDictionary>

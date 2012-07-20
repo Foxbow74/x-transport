@@ -1,0 +1,54 @@
+﻿<UserControl x:Class="ClientModulePositionsEditor.Views.ModuleView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:res="clr-namespace:AlphaStudioResources;assembly=AlphaStudioResources" xmlns:cc="clr-namespace:ClientCommonWpf;assembly=ClientCommonWpf" mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" 
+			 res:SharedResources.MergedDictionaries="AlphaDictionary">
+	<UserControl.Resources>
+		<Style TargetType="{x:Type ListBoxItem}">
+			<Setter Property="IsSelected" Value="{Binding Selected, Mode=TwoWay}"/>
+		</Style>
+	</UserControl.Resources>
+    <Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="5"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+		<ListBox Grid.Column="0" ItemsSource="{Binding Slots}" VirtualizingStackPanel.IsVirtualizing="False" DisplayMemberPath="Name" SelectedValuePath="Selected" SelectionMode="Extended"/>
+		<Grid Grid.Column="1" VerticalAlignment="Center" Margin="5">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="5"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+			<Button Grid.Row="0" Command="{Binding RemoveCommand}" cc:ButtonProperties.Image="{DynamicResource ImgRight}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgRightDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Remove instrument"/>
+			<Button Grid.Row="2" Command="{Binding AddCommand}" cc:ButtonProperties.Image="{DynamicResource ImgLeft}" cc:ButtonProperties.DisabledImage="{DynamicResource ImgLeftDisabled}" Style="{DynamicResource ImageButton}" ToolTip="Add instruemnt"/>
+		</Grid>
+		<ListBox Grid.Column="2" ItemsSource="{Binding Instruments}" VirtualizingStackPanel.IsVirtualizing="False" DisplayMemberPath="Name" SelectedValuePath="Selected" SelectionMode="Extended"/>
+		<Grid Grid.Row="2" Grid.Column="0">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
+			<HeaderedContentControl Header="Filter" Background="{DynamicResource LVBR_0_1}">
+				<TextBox FontStyle="Italic" Text="{Binding SlotsFilterText, UpdateSourceTrigger=PropertyChanged}"/>
+			</HeaderedContentControl>
+		</Grid>
+		<Grid Grid.Row="2" Grid.Column="2">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
+			<HeaderedContentControl Grid.Column="1" Header="Filter" Background="{DynamicResource LVBR_0_1}">
+				<TextBox FontStyle="Italic" Text="{Binding InstrumentFilterText, UpdateSourceTrigger=PropertyChanged}"/>
+			</HeaderedContentControl>
+		</Grid>
+	</Grid>
+</UserControl>

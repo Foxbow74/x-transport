@@ -1,0 +1,14 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:Converters="clr-namespace:ClientCommonWpf.Converters">
+	<Converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+	<Converters:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter"/>
+	<Style TargetType="MenuItem">
+		<Style.Setters>
+			<Setter Property="Header" Value="{Binding Descriptor.DocumentName}"/>
+			<Setter Property="FontWeight" Value="{Binding Descriptor.IsDefault, Converter={StaticResource BoolToFontWeightConverter}}"/>
+			<Setter Property="InputGestureText" Value="{Binding InputGestureText}"/>
+			<Setter Property="Command" Value="{Binding Command}"/>
+		</Style.Setters>
+	</Style>
+</ResourceDictionary>
