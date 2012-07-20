@@ -55,11 +55,12 @@ namespace XTransport.Client
 		public void Clear()
 		{
 			if (m_list.Count <= 0) return;
-			foreach (var item in m_list)
+			var items = m_list.ToArray();
+			m_list.Clear();
+			foreach (var item in items)
 			{
 				RemovedFromCollection(item);
 			}
-			m_list.Clear();
 			OnChanged();
 			UpdateVM(() => m_observableCollection.Clear());
 		}
@@ -147,6 +148,14 @@ namespace XTransport.Client
 		{
 			m_list.Add((T)_item);
 			UpdateVM(() => m_observableCollection.Add((T)_item));
+		}
+
+		public void RemoveSilently(ClientXObject<TKind> _item)
+		{
+			if (_item is T)
+			{
+				m_list.Remove((T) _item);
+			}
 		}
 
 		public override bool IsDirty
