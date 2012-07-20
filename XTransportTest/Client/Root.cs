@@ -14,11 +14,19 @@ namespace XTransportTest.Client
 		[X((int)ETestKind.REF)] private IList<RefObject> m_refItems;
 
 		[XFactory(typeof(TestFactory))]
-		[X((int)ETestKind.ALL)] private IList<XObject> m_all;
+		[X((int)ETestKind.ALL)]private IList<XObject> m_all;
+
+		[XFactory(typeof(TestFactory))]
+		[X((int)ETestKind.AB)]private IList<XObject> m_ab;
 
 		public IList<XObject> All
 		{
 			get { return m_all; }
+		}
+
+		public IList<XObject> AB
+		{
+			get { return m_ab; }
 		}
 
 		public IList<A> AItems

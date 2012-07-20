@@ -204,7 +204,10 @@ namespace XTransport.Client
 
 		public void RemovedFromCollection<T>(T _item) where T : ClientXObject<TKind>
 		{
-			
+			foreach (var list in m_xValues.Values.OfType<IXList<TKind>>())
+			{
+				list.RemoveSilently(_item);
+			}	
 		}
 
 		void IClientXObjectInternal<TKind>.ApplyChanges(XReport _report, bool _firstTime)

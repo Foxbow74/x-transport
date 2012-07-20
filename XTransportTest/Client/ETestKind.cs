@@ -8,6 +8,7 @@
 		PARENT,
 		CHILD,
 		ROOT,
-		ALL
+		ALL,
+		AB,
 	}
 }
