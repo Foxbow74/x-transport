@@ -6,16 +6,16 @@ namespace XTransportTest.ClientVM
 {
 	internal class RootVM : XObjectVM
 	{
-		[X((int) ETestKind.A)] private IList<Avm> m_aItems;
+		[X((int) ETestKind.A)] private ICollection<Avm> m_aItems;
 
-		[X((int) ETestKind.PARENT)] private IList<ParentVM> m_parentItems;
+		[X((int) ETestKind.PARENT)] private ICollection<ParentVM> m_parentItems;
 
-		public IList<Avm> AItems
+		public ICollection<Avm> AItems
 		{
 			get { return m_aItems; }
 		}
 
-		public IList<ParentVM> ParentItems
+		public ICollection<ParentVM> ParentItems
 		{
 			get { return m_parentItems; }
 		}

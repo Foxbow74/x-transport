@@ -7,19 +7,19 @@ namespace XTransportTest.ClientVM
 {
 	internal class ParentVM : XObjectVM
 	{
-		[X("LIST")] private IList<ChildVM> m_value;
+		[X("LIST")] private ICollection<ChildVM> m_value;
 
 		public override ETestKind Kind
 		{
 			get { return ETestKind.PARENT; }
 		}
 
-		public IList<ChildVM> Children
+		public ICollection<ChildVM> Children
 		{
 			get { return m_value; }
 		}
 
-		public IList<ChildVM> List
+		public ICollection<ChildVM> List
 		{
 			get { return m_value; }
 		}

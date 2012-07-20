@@ -11,7 +11,7 @@ namespace XTransportTest
 		public void GetIsRedoEnabled0()
 		{
 			var cl = new TstClient();
-			var a = cl.GetRoot<Root>().AItems[0];
+			var a = cl.GetRoot<Root>().AItems.First();
 			Wait();
 			a.Value = 10;
 			cl.Undo(a.Uid);
@@ -28,7 +28,7 @@ namespace XTransportTest
 		public void Redo()
 		{
 			var cl = new TstClient();
-			var a = cl.GetRoot<Root>().AItems[0];
+			var a = cl.GetRoot<Root>().AItems.First();
 			Wait();
 			a.Value = 10;
 			Wait();

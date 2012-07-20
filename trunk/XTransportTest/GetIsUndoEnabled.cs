@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XTransportTest.Client;
 using XTransportTest.ClientVM;
 
@@ -11,7 +12,7 @@ namespace XTransportTest
 		public void GetIsUndoEnabledByDefault()
 		{
 			var cl = new TstClient();
-			var a = cl.GetRoot<RootVM>().AItems[0];
+			var a = cl.GetRoot<RootVM>().AItems.First();
 			Assert.AreEqual(false, cl.GetIsUndoEnabled(a.Uid));
 		}
 
@@ -19,7 +20,7 @@ namespace XTransportTest
 		public void GetIsUndoEnabledAfterChanges()
 		{
 			var cl = new TstClient();
-			var a = cl.GetRoot<RootVM>().AItems[0];
+			var a = cl.GetRoot<RootVM>().AItems.First();
 			Wait();
 			a.Value = 10;
 			Assert.AreEqual(true, cl.GetIsUndoEnabled(a.Uid));
@@ -29,7 +30,7 @@ namespace XTransportTest
 		public void GetIsUndoEnabledAfterChangesAndUndo()
 		{
 			var cl = new TstClient();
-			var a = cl.GetRoot<RootVM>().AItems[0];
+			var a = cl.GetRoot<RootVM>().AItems.First();
 			Wait();
 			a.Value = 10;
 			Assert.AreEqual(true, cl.GetIsUndoEnabled(a.Uid));
@@ -46,7 +47,7 @@ namespace XTransportTest
 		public void GetIsUndoEnabledAfterChangesAndSave()
 		{
 			var cl = new TstClient();
-			var a = cl.GetRoot<RootVM>().AItems[0];
+			var a = cl.GetRoot<RootVM>().AItems.First();
 			Wait();
 			a.Value = 10;
 			Assert.AreEqual(true, cl.GetIsUndoEnabled(a.Uid));
@@ -61,7 +62,7 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var root = cl.GetRoot<RootVM>();
 			Wait();
-			root.AItems.Add(new Avm() { Value = 99 });
+			root.AItems.Add(new Avm { Value = 99 });
 			Assert.AreEqual(true, cl.GetIsUndoEnabled(root.Uid));
 			cl.Save(root.Uid);
 			Wait(1000, () => root.IsDirty);
@@ -74,7 +75,7 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var root = cl.GetRoot<RootVM>();
 			Wait(100);
-			root.AItems.RemoveAt(0);
+			root.AItems.Remove(root.AItems.First());
 			Wait(100);
 			Assert.AreEqual(true, cl.GetIsUndoEnabled(root.Uid));
 			cl.Save(root.Uid);

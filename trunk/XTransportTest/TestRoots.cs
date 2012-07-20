@@ -41,7 +41,7 @@ namespace XTransportTest
 			var generalMirror = cl1.GetRoot<RootMirror>();
 
 			var general = cl.GetRoot<RootVM>();
-			general.AItems.RemoveAt(0);
+			general.AItems.Remove(general.AItems.First());
 			cl.Save(general.Uid);
 			Wait(200);
 			cl1.Revert(generalMirror.Uid);

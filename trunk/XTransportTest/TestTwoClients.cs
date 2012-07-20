@@ -12,7 +12,7 @@ namespace XTransportTest
 		{
 			var cl1 = new TstClient();
 			var cl2 = new TstClient();
-			var a = cl1.GetRoot<Root>().AItems[0];
+			var a = cl1.GetRoot<Root>().AItems.First();
 			a.Value = 10;
 			var am = cl2.Get<AMirror>(a.Uid);
 			Assert.AreNotEqual(a.Value, am.Value);
@@ -23,7 +23,7 @@ namespace XTransportTest
 		{
 			var cl1 = new TstClient();
 			var cl2 = new TstClient();
-			var a = cl1.GetRoot<Root>().AItems[0];
+			var a = cl1.GetRoot<Root>().AItems.First();
 			a.Value = 10;
 			cl1.Save(a.Uid);
 			var am = cl2.Get<AMirror>(a.Uid);
@@ -35,7 +35,7 @@ namespace XTransportTest
 		{
 			var cl1 = new TstClient();
 			var cl2 = new TstClient();
-			var a = cl1.GetRoot<Root>().AItems[0];
+			var a = cl1.GetRoot<Root>().AItems.First();
 			a.Value = 10;
 			var am = cl2.Get<AMirror>(a.Uid);
 			cl1.Save(a.Uid);
@@ -53,15 +53,15 @@ namespace XTransportTest
 			var cl2 = new TstClient();
 			var rt2 = cl2.GetRoot<Root>();
 
-			Assert.AreEqual(rt1.RefItems[0].Ref, rt1.AItems[0]);
-			Assert.AreNotEqual(rt1.RefItems[0].Ref, rt1.AItems[1]);
-			rt1.RefItems[0].Ref = rt1.AItems[1];
-			rt2.RefItems[0].Ref = rt2.AItems[1];
+			Assert.AreEqual(rt1.RefItems.First().Ref, rt1.AItems.First());
+			Assert.AreNotEqual(rt1.RefItems.First().Ref, rt1.AItems.ToList()[1]);
+			rt1.RefItems.First().Ref = rt1.AItems.ToList()[1];
+			rt2.RefItems.First().Ref = rt2.AItems.ToList()[1];
 
 			cl1.Save(rt1.Uid);
 			cl2.Undo(rt2.Uid);
-			Assert.AreEqual(rt2.RefItems[0].Ref.Uid, rt2.AItems[0].Uid);
-			Assert.AreEqual(rt2.RefItems[0].Ref, rt2.AItems[0]);
+			Assert.AreEqual(rt2.RefItems.First().Ref.Uid, rt2.AItems.First().Uid);
+			Assert.AreEqual(rt2.RefItems.First().Ref, rt2.AItems.First());
 		}
 
 		[TestMethod]
@@ -75,8 +75,8 @@ namespace XTransportTest
 
 			var cnt = rt1.AItems.Count;
 
-			rt1.AItems.RemoveAt(0);
-			rt2.AItems.RemoveAt(0);
+			rt1.AItems.Remove(rt1.AItems.First());
+			rt2.AItems.Remove(rt2.AItems.First());
 
 			cl1.Save(rt1.Uid);
 			Wait(1000, () => rt1.IsDirty);

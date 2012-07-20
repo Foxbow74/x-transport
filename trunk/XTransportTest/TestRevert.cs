@@ -45,7 +45,7 @@ namespace XTransportTest
 		public void Revert()
 		{
 			var cl1 = new TstClient();
-			var a = cl1.GetRoot<Root>().AItems[0];
+			var a = cl1.GetRoot<Root>().AItems.First();
 			a.Value = 10;
 			cl1.Save(a.Uid);
 			Wait(100, () => a.IsDirty);

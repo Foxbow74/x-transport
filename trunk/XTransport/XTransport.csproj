@@ -83,11 +83,11 @@
     <Compile Include="Client\IClientXObjectInternal.cs" />
     <Compile Include="Client\IClientXObjectVM.cs" />
     <Compile Include="Client\IXClientUserInternal.cs" />
-    <Compile Include="Client\IXList.cs" />
+    <Compile Include="Client\IXCollection.cs" />
     <Compile Include="IXValue.cs" />
     <Compile Include="Client\IXValueInternal.cs" />
     <Compile Include="Client\ClientXObjectDescriptor.cs" />
-    <Compile Include="Client\XList.cs" />
+    <Compile Include="Client\XCollection.cs" />
     <Compile Include="Client\XRef.cs" />
     <Compile Include="EReportListItemState.cs" />
     <Compile Include="IXObject.cs" />

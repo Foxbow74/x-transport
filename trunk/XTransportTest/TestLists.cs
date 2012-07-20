@@ -12,7 +12,7 @@ namespace XTransportTest
 		public void GetList()
 		{
 			var cl = new TstClient();
-			var pr = cl.GetRoot<Root>().ParentItems[0];
+			var pr = cl.GetRoot<Root>().ParentItems.First();
 			Assert.AreEqual(2, pr.Children.Count);
 		}
 
@@ -20,7 +20,7 @@ namespace XTransportTest
 		public void Parent()
 		{
 			var cl = new TstClient();
-			var pr = cl.GetRoot<Root>().ParentItems[0];
+			var pr = cl.GetRoot<Root>().ParentItems.First();
 			foreach (var child in pr.Children)
 			{
 				Assert.AreEqual(pr, child.Parent);
@@ -35,7 +35,7 @@ namespace XTransportTest
 			{
 				Debug.WriteLine(parentItem.GetHashCode());
 			}
-			var pr = cl.GetRoot<Root>().ParentItems[0];
+			var pr = cl.GetRoot<Root>().ParentItems.First();
 			var child = new Child {Value = 3.0};
 			pr.Children.Add(child);
 			Assert.AreEqual(pr, child.Parent);
@@ -45,7 +45,7 @@ namespace XTransportTest
 		public void Undo()
 		{
 			var cl = new TstClient();
-			var pr = cl.GetRoot<Root>().ParentItems[0];
+			var pr = cl.GetRoot<Root>().ParentItems.First();
 			Wait();
 			var clientSideChild = new Child {Value = 3.0};
 			pr.Children.Add(clientSideChild);
@@ -57,7 +57,7 @@ namespace XTransportTest
 		public void Redo()
 		{
 			var cl = new TstClient();
-			var pr = cl.GetRoot<Root>().ParentItems[0];
+			var pr = cl.GetRoot<Root>().ParentItems.First();
 			var child = new Child {Value = 3.0};
 			Wait();
 			var cnt = pr.Children.Count;

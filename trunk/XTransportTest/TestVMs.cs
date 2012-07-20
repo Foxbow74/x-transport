@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XTransportTest.Client;
@@ -14,14 +15,14 @@ namespace XTransportTest
 		public void Simple()
 		{
 			var cl = new TstClient();
-			Assert.AreNotEqual(null, cl.GetRoot<RootVM>().AItems[0]);
+			Assert.AreNotEqual(null, cl.GetRoot<RootVM>().AItems.First());
 		}
 
 		[TestMethod]
 		public void Notification()
 		{
 			var cl = new TstClient();
-			var avm = cl.GetRoot<RootVM>().AItems[0];
+			var avm = cl.GetRoot<RootVM>().AItems.First();
 
 			var mre = new ManualResetEvent(false);
 			avm.PropertyChanged += delegate(object _sender, PropertyChangedEventArgs _args)
@@ -42,8 +43,8 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 
-			var avm = cl.GetRoot<RootVM>().AItems[0];
-			var aMirrorVM = cl.GetRoot<RootMirrorVM>().AItems[0];
+			var avm = cl.GetRoot<RootVM>().AItems.First();
+			var aMirrorVM = cl.GetRoot<RootMirrorVM>().AItems.First();
 
 			var mre = new ManualResetEvent(false);
 			avm.PropertyChanged += delegate(object _sender, PropertyChangedEventArgs _args)
@@ -65,7 +66,7 @@ namespace XTransportTest
 		{
 			var clVM = new TstClient();
 			var client = new TstClient();
-			var avm = clVM.GetRoot<RootVM>().AItems[0];
+			var avm = clVM.GetRoot<RootVM>().AItems.First();
 			var a = client.Get<A>(avm.Uid);
 
 			var mre = new ManualResetEvent(false);
@@ -88,7 +89,7 @@ namespace XTransportTest
 		public void ObservableCollection()
 		{
 			var cl = new TstClient();
-			var parent = cl.GetRoot<RootVM>().ParentItems[0];
+			var parent = cl.GetRoot<RootVM>().ParentItems.First();
 
 			while (parent.List.Count != parent.ObsCol.Count)
 			{
@@ -104,13 +105,13 @@ namespace XTransportTest
 		public void MirrorObservableCollection()
 		{
 			var cl = new TstClient();
-			var parent = cl.GetRoot<RootVM>().ParentItems[0];
+			var parent = cl.GetRoot<RootVM>().ParentItems.First();
 			var parentM = cl.Get<ParentMirrorVM>(parent.Uid);
 			var mre = new ManualResetEvent(false);
 			ThreadPool.QueueUserWorkItem(_state =>
 			                             	{
 			                             		Wait();
-			                             		parentM.List.RemoveAt(0);
+												parentM.List.Remove(parentM.List.First());
 			                             		mre.Set();
 			                             	});
 			Assert.AreEqual(true, mre.WaitOne(100));
@@ -129,14 +130,14 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 			var cl1 = new TstClient();
-			var parent = cl.GetRoot<RootVM>().ParentItems[0];
+			var parent = cl.GetRoot<RootVM>().ParentItems.First();
 			var parent1 = cl1.Get<ParentVM>(parent.Uid);
 
 			var mre = new ManualResetEvent(false);
 			ThreadPool.QueueUserWorkItem(_state =>
 			                             	{
 			                             		Wait();
-			                             		parent1.List.RemoveAt(0);
+			                             		parent1.List.Remove(parent1.List.First());
 			                             		cl1.Save(parent.Uid);
 			                             		mre.Set();
 			                             	});
