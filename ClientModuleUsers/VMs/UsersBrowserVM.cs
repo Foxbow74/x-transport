@@ -11,8 +11,8 @@ namespace ClientModuleUsers.VMs
 	{
 		private UserLinkVM m_selectedItem;
 
-		[X((int) EAlphaKind.USER)] 
-		private IList<UserLinkVM> m_users;
+		[X((int) EAlphaKind.USER)]
+		private ICollection<UserLinkVM> m_users;
 
 		public override EAlphaKind Kind
 		{

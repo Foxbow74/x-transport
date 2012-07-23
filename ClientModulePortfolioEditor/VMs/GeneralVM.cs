@@ -9,7 +9,7 @@ namespace ClientModulePortfolioEditor.VMs
 	class GeneralVM : AlphaVM
 	{
 		[X((int)EAlphaKind.CURRENCY)]
-		private IList<CurrencyVM> m_currencyVms;
+		private ICollection<CurrencyVM> m_currencyVms;
 
 		protected override void InstantiationFinished()
 		{

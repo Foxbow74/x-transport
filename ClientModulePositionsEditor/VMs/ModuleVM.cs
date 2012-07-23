@@ -14,7 +14,8 @@ namespace ClientModulePositionsEditor.VMs
 	{
 		private string m_instrumentFilterText;
 
-		[X("INSTRUMENTS")] private IList<PortfolioInstrumentVM> m_slots;
+		[X("INSTRUMENTS")]
+		private ICollection<PortfolioInstrumentVM> m_slots;
 		private string m_slotsFilterText;
 
 		public ReadOnlyObservableCollection<AbstractDerivativeVM> Instruments { get; private set; }

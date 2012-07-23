@@ -33,7 +33,7 @@ namespace XTransport.Client
 		{
 		}
 
-		#region IList<T> Members
+		#region ICollection<T> Members
 
 		public IEnumerator<T> GetEnumerator()
 		{
@@ -47,9 +47,7 @@ namespace XTransport.Client
 
 		public void Add(T _item)
 		{
-			//m_dict.Add(_item.Uid, _item);
 			AddedToCollection(_item);
-			UpdateVM(() => m_observableCollection.Add(_item));
 		}
 
 		public void Clear()
