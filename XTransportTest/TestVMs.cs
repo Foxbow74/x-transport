@@ -91,10 +91,7 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var parent = cl.GetRoot<RootVM>().ParentItems.First();
 
-			while (parent.List.Count != parent.ObsCol.Count)
-			{
-				Wait();
-			}
+			Wait(1000, () => parent.List.Count != parent.ObsCol.Count);
 			foreach (var vm in parent.List)
 			{
 				Assert.AreEqual(true, parent.ObsCol.Contains(vm));
@@ -115,10 +112,7 @@ namespace XTransportTest
 			                             		mre.Set();
 			                             	});
 			Assert.AreEqual(true, mre.WaitOne(100));
-			while (parentM.List.Count != parent.ObsCol.Count)
-			{
-				Wait();
-			}
+			Wait(1000, () => parentM.List.Count != parent.ObsCol.Count);
 			foreach (var vm in parent.List)
 			{
 				Assert.AreEqual(true, parent.ObsCol.Contains(vm));
@@ -128,32 +122,29 @@ namespace XTransportTest
 		[TestMethod]
 		public void TwoClientObservableCollection()
 		{
-			var cl = new TstClient();
 			var cl1 = new TstClient();
-			var parent = cl.GetRoot<RootVM>().ParentItems.First();
-			var parent1 = cl1.Get<ParentVM>(parent.Uid);
+			var cl2 = new TstClient();
+			var parentVM1 = cl1.GetRoot<RootVM>().ParentItems.First();
+			var parentVM2 = cl2.Get<ParentVM>(parentVM1.Uid);
 
 			var mre = new ManualResetEvent(false);
 			ThreadPool.QueueUserWorkItem(_state =>
 			                             	{
 			                             		Wait();
-			                             		parent1.List.Remove(parent1.List.First());
-			                             		cl1.Save(parent.Uid);
+			                             		parentVM2.List.Remove(parentVM2.List.First());
+			                             		cl2.Save(parentVM1.Uid);
 			                             		mre.Set();
 			                             	});
 			Assert.AreEqual(true, mre.WaitOne(100));
 			Wait(100);
-			cl.Revert(parent.Uid);
+			cl1.Revert(parentVM1.Uid);
 
-			var waitCounter = 1000;
-			while (parent1.List.Count != parent.ObsCol.Count && waitCounter-- > 0)
+			Wait(1000, () => parentVM2.List.Count != parentVM1.ObsCol.Count);
+
+			Assert.AreEqual(parentVM2.List.Count, parentVM1.ObsCol.Count);
+			foreach (var vm in parentVM1.List)
 			{
-				Wait();
-			}
-			Assert.AreEqual(parent1.List.Count, parent.ObsCol.Count);
-			foreach (var vm in parent.List)
-			{
-				Assert.AreEqual(true, parent.ObsCol.Contains(vm));
+				Assert.AreEqual(true, parentVM1.ObsCol.Contains(vm));
 			}
 		}
 	}

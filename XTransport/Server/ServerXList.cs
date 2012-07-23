@@ -67,15 +67,6 @@ namespace XTransport.Server
 
 		#endregion
 
-		//public void SaveChildren(ServerXObjectContainer _owner, IXServerInternal _server, SessionId _sessionId,
-		//                         Storage _storage, int _field, DateTime _now)
-		//{
-		//    foreach (var guid in m_list)
-		//    {
-		//        _server.SaveChild(guid, _owner, _sessionId, _storage, _field, _now);
-		//    }
-		//}
-
 		public IEnumerable<Guid> GetGuids()
 		{
 			return m_list;
@@ -83,11 +74,23 @@ namespace XTransport.Server
 
 		public void AddChildUid(Guid _uid)
 		{
+#if DEBUG
+			if (m_list.Contains(_uid))
+			{
+				throw new ApplicationException();
+			}
+#endif
 			m_list.Add(_uid);
 		}
 
 		public void AddRange(IEnumerable<Guid> _uids)
 		{
+#if DEBUG
+			if (_uids.Any(_uid => m_list.Contains(_uid)))
+			{
+				throw new ApplicationException();
+			}
+#endif
 			m_list.AddRange(_uids);
 		}
 

@@ -32,8 +32,10 @@ namespace XTransportTest
 			var rt = cl.GetRoot<Root>();
 			var cnt = rt.AItems.Count;
 			rt.AItems.Add(new A {Value = 1});
+			Assert.IsTrue(cl.GetIsUndoEnabled(rt.Uid));
 			cl.Undo(rt.Uid);
 			Assert.AreEqual(cnt, rt.AItems.Count);
+			Assert.IsFalse(cl.GetIsUndoEnabled(rt.Uid));
 		}
 
 		[TestMethod]
@@ -59,17 +61,17 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var rt = cl.GetRoot<Root>();
 			var cnt = rt.AItems.Count;
-			rt.AItems.Add(new A { Value = 1 });
+			rt.AItems.Add(new A { Value = 99 });
 			Wait();
-			rt.AItems.Last().Value = 2;
+			rt.AItems.Last().Value = 100;
 			Wait();
-			rt.AItems.Add(new A { Value = 3 });
+			rt.AItems.Add(new A { Value = 101 });
 			Wait();
 			cl.Undo(rt.Uid);
 			Assert.AreEqual(cnt+1, rt.AItems.Count);
-			Assert.AreEqual(2, rt.AItems.Last().Value);
+			Assert.AreEqual(100, rt.AItems.Last().Value);
 			cl.Undo(rt.Uid);
-			Assert.AreEqual(1, rt.AItems.Last().Value);
+			Assert.AreEqual(99, rt.AItems.Last().Value);
 			cl.Undo(rt.Uid);
 			Assert.AreEqual(cnt, rt.AItems.Count);
 		}

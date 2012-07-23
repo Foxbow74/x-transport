@@ -12,11 +12,11 @@ namespace XTransportTest
 		public void Simple()
 		{
 			var cl = new TstClient();
-			var general = cl.GetRoot<Root>();
-			Assert.AreNotEqual(0, general.AItems.Count);
-			Assert.AreNotEqual(0, general.BItems.Count);
-			Assert.AreNotEqual(0, general.ParentItems.Count);
-			Assert.AreNotEqual(0, general.RefItems.Count);
+			var root = cl.GetRoot<Root>();
+			Assert.AreNotEqual(0, root.AItems.Count);
+			Assert.AreNotEqual(0, root.BItems.Count);
+			Assert.AreNotEqual(0, root.ParentItems.Count);
+			Assert.AreNotEqual(0, root.RefItems.Count);
 		}
 
 		[TestMethod]

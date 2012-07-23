@@ -14,21 +14,5 @@ namespace AlphaXServer
 		{
 			return new SQLiteStorage(DB_NAME);
 		}
-
-		protected override IEnumerable<int> KindAlsoKnownAs(int _kind)
-		{
-			switch ((EAlphaKind)_kind)
-			{
-				case EAlphaKind.CURRENCY_PAIR:
-				case EAlphaKind.BOND:
-				case EAlphaKind.INDEX:
-					yield return (int)EAlphaKind.ASSET;
-					break;
-				case EAlphaKind.FORWARD:
-				case EAlphaKind.FUTURES:
-					yield return (int)EAlphaKind.DERIVATIVE;
-					break;
-			}
-		}
 	}
 }

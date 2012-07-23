@@ -16,18 +16,6 @@ namespace XTransportTest.Server
 			return new SQLiteStorage(DbName);
 		}
 
-		protected override IEnumerable<int> KindAlsoKnownAs(int _kind)
-		{
-			yield return (int)ETestKind.ALL;
-			switch ((ETestKind)_kind)
-			{
-				case ETestKind.A:
-				case ETestKind.B:
-					yield return (int) ETestKind.AB;
-					break;
-			}
-		}
-
 		protected override bool IsAsync
 		{
 			get { return false; }

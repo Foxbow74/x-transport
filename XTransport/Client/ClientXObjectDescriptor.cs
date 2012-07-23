@@ -31,6 +31,12 @@ namespace XTransport.Client
 			m_client = _client;
 		}
 
+		public ClientXObjectDescriptor(IClientXObjectInternal<TKind> _clientXObjectInternal, AbstractXClient<TKind> _client, int _kindId, Guid _parentUid):this(_clientXObjectInternal.Uid, _client)
+		{
+			SetParentUid(_parentUid);
+			AddNew(_clientXObjectInternal, _kindId);
+		}
+
 		public DateTime ActualFrom { get; set; }
 		public DateTime Stored { get; set; }
 		public DateTime Loaded { get; set; }
@@ -338,5 +344,24 @@ namespace XTransport.Client
 		}
 
 		#endregion
+
+		public void AddedToCollection(IClientXObjectInternal<TKind> _child, IEnumerable<TKind> _alsoKnownAs)
+		{
+			foreach (var instance in m_instances.Values)
+			{
+				foreach (var alsoKnownAs in _alsoKnownAs)
+				{
+					instance.AddedToCollection(_child, m_client.KindToIntInternal(alsoKnownAs));
+				}
+			}
+		}
+
+		public void RemovedFromCollection(IClientXObjectInternal<TKind> _child)
+		{
+			foreach (var instance in m_instances.Values)
+			{
+				instance.RemovedFromCollection(_child);
+			}
+		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Threading;
 using XTransport.Client;
@@ -20,6 +21,17 @@ namespace XTransportTest.Client
 			                      	}) {IsBackground = true};
 
 			m_thread.SetApartmentState(ApartmentState.STA);
+		}
+
+
+		protected override IEnumerable<KeyValuePair<ETestKind, ETestKind>> GetAbstractRootKindMap()
+		{
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.A, ETestKind.AB);
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.B, ETestKind.AB);
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.A, ETestKind.ALL);
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.B, ETestKind.ALL);
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.PARENT, ETestKind.ALL);
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.REF, ETestKind.ALL);
 		}
 
 		public TstClient()

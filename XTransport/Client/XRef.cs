@@ -70,11 +70,11 @@ namespace XTransport.Client
 					m_original = item.Value;
 					if (_firstTime)
 					{
-						SetValue(m_original);
+						SetValueInternal(m_original);
 					}
 					break;
 				case XReportItemState.CHANGE:
-					SetValue(item.Value);
+					SetValueInternal(item.Value);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException();
@@ -88,6 +88,12 @@ namespace XTransport.Client
 
 		private void SetValue(Guid _uid)
 		{
+			SetValueInternal(_uid);
+			OnChanged();
+		}
+
+		private void SetValueInternal(Guid _uid)
+		{
 			if (!CheckValue(m_current, _uid)) return;
 			m_current = _uid;
 			if (m_factory == null)
@@ -98,8 +104,6 @@ namespace XTransport.Client
 			{
 				m_object = m_client.GetDescriptor(_uid).Get<T>(m_factory);
 			}
-
-			OnChanged();
 		}
 
 		private static bool CheckValue(Guid _current, Guid _value)

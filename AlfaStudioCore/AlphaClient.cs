@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Threading;
 using XTransport.Client;
@@ -30,6 +31,15 @@ namespace AlphaStudioCore
 				}
 				throw new ApplicationException("Can't instaniate AlphaClient");
 			}
+		}
+
+		protected override IEnumerable<KeyValuePair<EAlphaKind, EAlphaKind>> GetAbstractRootKindMap()
+		{
+			yield return new KeyValuePair<EAlphaKind, EAlphaKind>(EAlphaKind.CURRENCY_PAIR, EAlphaKind.ASSET);
+			yield return new KeyValuePair<EAlphaKind, EAlphaKind>(EAlphaKind.BOND, EAlphaKind.ASSET);
+			yield return new KeyValuePair<EAlphaKind, EAlphaKind>(EAlphaKind.INDEX, EAlphaKind.ASSET);
+			yield return new KeyValuePair<EAlphaKind, EAlphaKind>(EAlphaKind.FORWARD, EAlphaKind.DERIVATIVE);
+			yield return new KeyValuePair<EAlphaKind, EAlphaKind>(EAlphaKind.FUTURES, EAlphaKind.DERIVATIVE);
 		}
 
 		public override Guid UserUid

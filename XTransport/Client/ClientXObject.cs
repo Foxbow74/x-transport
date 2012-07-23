@@ -174,11 +174,7 @@ namespace XTransport.Client
 			Uid = _uid;
 		}
 
-		public virtual void OnDeserialized()
-		{
-		}
-
-		public IEnumerable<Guid> GetChildUids()
+		IEnumerable<Guid> IClientXObjectInternal<TKind>.GetChildUids()
 		{
 			foreach (var list in m_xValues.Values.OfType<IXCollection<TKind>>())
 			{
@@ -189,24 +185,24 @@ namespace XTransport.Client
 			}
 		}
 
-		public void AddedToCollection<T>(T _item, int _kind) where T : ClientXObject<TKind>
+		void IClientXObjectInternal<TKind>.AddedToCollection<T>(T _item, int _fieldId)
 		{
-			IXValueInternal xValueInternal;
-			if (m_xValues.TryGetValue(_kind, out xValueInternal))
+			IXValueInternal value;
+			if (!m_xValues.TryGetValue(_fieldId, out value)) return;
+
+			var list = value as IXCollection<TKind>;
+			if(list==null)
 			{
-				var list = xValueInternal as IXCollection<TKind>;
-				if(list!=null)
-				{
-					list.AddSilently(_item);
-				}
+				throw new ApplicationException();
 			}
+			list.AddSilently(_item);
 		}
 
-		public void RemovedFromCollection<T>(T _item) where T : ClientXObject<TKind>
+		void IClientXObjectInternal<TKind>.RemovedFromCollection<T>(T _item)
 		{
 			foreach (var list in m_xValues.Values.OfType<IXCollection<TKind>>())
 			{
-				list.RemoveSilently(_item);
+				list.RemoveSilently(_item.Uid);
 			}	
 		}
 

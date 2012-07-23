@@ -36,7 +36,7 @@ namespace XTransport.WCF
 		SessionId Login(Guid _userUid);
 
 		[OperationContract]
-		IEnumerable<int> AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid);
+		void AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid);
 
 		[OperationContract]
 		Guid GetRootUid();

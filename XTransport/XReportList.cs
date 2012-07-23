@@ -20,7 +20,7 @@ namespace XTransport
 
 		public override string ToString()
 		{
-			return base.ToString() + " = " + Items.Count;
+			return base.ToString() + "[" + Items.Count + " items]";
 		}
 
 		public override AbstractXReportItem CreateDefaultReportItem()
