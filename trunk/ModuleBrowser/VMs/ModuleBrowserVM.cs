@@ -12,7 +12,7 @@ namespace ClientModuleBrowser.VMs
 	internal class ModuleBrowserVM : AlphaVM
 	{
 		[X((int)EAlphaKind.PORTFOLIO)]
-		private IList<PortfolioLinkVM> m_portfolios;
+		private ICollection<PortfolioLinkVM> m_portfolios;
 
 		public RelayCommand OpenCommand { get; private set; }
 

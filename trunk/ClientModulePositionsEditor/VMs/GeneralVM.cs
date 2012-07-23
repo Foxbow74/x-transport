@@ -10,7 +10,7 @@ namespace ClientModulePositionsEditor.VMs
 	{
 		[X((int)EAlphaKind.DERIVATIVE)]
 		[XFactory(typeof(DerivativeFactory))]
-		private IList<AbstractDerivativeVM> m_derivatives;
+		private ICollection<AbstractDerivativeVM> m_derivatives;
 
 		protected override void InstantiationFinished()
 		{

@@ -281,14 +281,7 @@ namespace XTransport.Client
 
 		internal virtual void XValueOnChanged(IXValueInternal _value)
 		{
-			if (_value.IsDirty)
-			{
-				IsDirty = true;
-			}
-			else
-			{
-				IsDirty = m_xValues.Values.Any(_av => _av.IsDirty);
-			}
+			XValueOnDirtyChanged(_value);
 			OnChanged();
 		}
 

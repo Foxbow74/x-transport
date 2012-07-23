@@ -136,23 +136,27 @@ namespace XTransport.Client
 				var dict = new Dictionary<TKind, Dictionary<XReportItemState, List<XReportListItem>>>();
 				foreach (var list in lists)
 				{
-					foreach (var kind in m_abstractRootKindMap[IntToKind(list.FieldId)])
+					List<TKind> kinds;
+					if (m_abstractRootKindMap.TryGetValue(IntToKind(list.FieldId), out kinds))
 					{
-						Dictionary<XReportItemState, List<XReportListItem>> dictionary;
-						if(!dict.TryGetValue(kind, out dictionary))
+						foreach (var kind in kinds)
 						{
-							dictionary = new Dictionary<XReportItemState, List<XReportListItem>>();
-							dict.Add(kind, dictionary);
-						}
-						List<XReportListItem> items;
-						if(!dictionary.TryGetValue(list.State, out items))
-						{
-							items = new List<XReportListItem>(list.Items);
-							dictionary.Add(list.State, items);
-						}
-						else
-						{
-							items.AddRange(list.Items);
+							Dictionary<XReportItemState, List<XReportListItem>> dictionary;
+							if (!dict.TryGetValue(kind, out dictionary))
+							{
+								dictionary = new Dictionary<XReportItemState, List<XReportListItem>>();
+								dict.Add(kind, dictionary);
+							}
+							List<XReportListItem> items;
+							if (!dictionary.TryGetValue(list.State, out items))
+							{
+								items = new List<XReportListItem>(list.Items);
+								dictionary.Add(list.State, items);
+							}
+							else
+							{
+								items.AddRange(list.Items);
+							}
 						}
 					}
 				}

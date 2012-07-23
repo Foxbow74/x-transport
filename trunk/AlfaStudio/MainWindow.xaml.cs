@@ -101,7 +101,7 @@ namespace AlfaStudio
 					}
 					var descriptor = UiManager.GetDescriptor(_model, _kind);
 					
-					if (_command==EDocumentCommand.OPEN_IN_NEW_TAB || m_manager.ActiveDocument == null || m_manager.ActiveDocument==null)
+					if (_command==EDocumentCommand.OPEN_IN_NEW_TAB || ActivePage==null)
 					{
 						NewPageExecute(descriptor);
 					}

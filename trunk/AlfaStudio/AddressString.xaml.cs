@@ -17,21 +17,9 @@ namespace AlfaStudio
 			UiManager.UIMessage += UiManagerUIMessage;
 		}
 
-		void UiManagerUIMessage(EUiEvent _uiEvent, EAlphaKind _kind, Guid _uid)
+		private void UiManagerUIMessage(EUiEvent _arg1, EAlphaKind _arg2, Guid _arg3)
 		{
-			switch (_kind)
-			{
-				case EAlphaKind.NONE:
-					break;
-				case EAlphaKind.PORTFOLIO:
-					break;
-				case EAlphaKind.CURRENCY:
-					break;
-				case EAlphaKind.USER:
-					break;
-				default:
-					throw new ArgumentOutOfRangeException("_kind");
-			}
+			
 		}
 
 		void UiManagerDocumentEvent(EDocumentCommand _command, EAlphaKind _kind, EAlphaDocumentKind _documentKind, Guid _uid)
