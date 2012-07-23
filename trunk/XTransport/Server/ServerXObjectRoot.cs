@@ -15,10 +15,6 @@ namespace XTransport.Server
 		public void Add(int _kind, Guid _xObjectUid, AbstractXServer _abstractXServer)
 		{
 			RegisterObject(_kind, _xObjectUid);
-			foreach (var alsoKnownAs in _abstractXServer.KindAlsoKnownAsInternal(_kind))
-			{
-				RegisterObject(alsoKnownAs, _xObjectUid);
-			}
 		}
 
 		private void RegisterObject(int _kind, Guid _xObjectUid)

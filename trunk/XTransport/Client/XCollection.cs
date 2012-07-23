@@ -12,7 +12,7 @@ namespace XTransport.Client
 		where T : ClientXObject<TKind>
 	{
 		private readonly IXObjectFactory<TKind> m_factory;
-		private readonly Dictionary<Guid, T> m_list = new Dictionary<Guid, T>();
+		private readonly Dictionary<Guid, T> m_dict = new Dictionary<Guid, T>();
 		private readonly List<T> m_original = new List<T>();
 		private AbstractXClient<TKind> m_client;
 		private bool m_isDirty;
@@ -37,7 +37,7 @@ namespace XTransport.Client
 
 		public IEnumerator<T> GetEnumerator()
 		{
-			return m_list.Values.GetEnumerator();
+			return m_dict.Values.GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
@@ -47,16 +47,16 @@ namespace XTransport.Client
 
 		public void Add(T _item)
 		{
-			m_list.Add(_item.Uid, _item);
+			//m_dict.Add(_item.Uid, _item);
 			AddedToCollection(_item);
 			UpdateVM(() => m_observableCollection.Add(_item));
 		}
 
 		public void Clear()
 		{
-			if (m_list.Count <= 0) return;
-			var items = m_list.ToArray();
-			m_list.Clear();
+			if (m_dict.Count <= 0) return;
+			var items = m_dict.ToArray();
+			m_dict.Clear();
 			foreach (var item in items)
 			{
 				RemovedFromCollection(item.Value);
@@ -67,17 +67,17 @@ namespace XTransport.Client
 
 		public bool Contains(T _item)
 		{
-			return m_list.ContainsKey(_item.Uid);
+			return m_dict.ContainsKey(_item.Uid);
 		}
 
 		public void CopyTo(T[] _array, int _arrayIndex)
 		{
-			m_list.Values.CopyTo(_array, _arrayIndex);
+			m_dict.Values.CopyTo(_array, _arrayIndex);
 		}
 
 		public bool Remove(T _item)
 		{
-			if (m_list.Remove(_item.Uid))
+			if (m_dict.Remove(_item.Uid))
 			{
 				RemovedFromCollection(_item);
 				UpdateVM(() => m_observableCollection.Remove(_item));
@@ -88,7 +88,7 @@ namespace XTransport.Client
 
 		public int Count
 		{
-			get { return m_list.Count; }
+			get { return m_dict.Count; }
 		}
 
 		public bool IsReadOnly
@@ -113,20 +113,25 @@ namespace XTransport.Client
 
 		public IEnumerable<Guid> GetUids()
 		{
-			return m_list.Keys;
+			return m_dict.Keys;
 		}
 
-		public void AddSilently(IXObject<TKind> _item)
+		void IXCollection<TKind>.AddSilently(IXObject<TKind> _item)
 		{
-			m_list.Add(_item.Uid, (T)_item);
-			UpdateVM(() => m_observableCollection.Add((T)_item));
-		}
-
-		public void RemoveSilently(ClientXObject<TKind> _item)
-		{
-			if (_item is T)
+			if (!m_dict.ContainsKey(_item.Uid))
 			{
-				m_list.Remove(_item.Uid);
+				m_dict.Add(_item.Uid, (T) _item);
+				UpdateVM(() => m_observableCollection.Add((T) _item));
+			}
+		}
+
+		void IXCollection<TKind>.RemoveSilently(Guid _uid)
+		{
+			T item;
+			if (m_dict.TryGetValue(_uid, out item))
+			{
+				m_dict.Remove(_uid);
+				UpdateVM(() => m_observableCollection.Remove((T) item));
 			}
 		}
 
@@ -149,8 +154,8 @@ namespace XTransport.Client
 			}
 #endif
 			var items = new List<XReportListItem>();
-			items.AddRange(m_list.Values.Except(m_original).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.ADDED)));
-			items.AddRange(m_original.Except(m_list.Values).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.REMOVED)));
+			items.AddRange(m_dict.Values.Except(m_original).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.ADDED)));
+			items.AddRange(m_original.Except(m_dict.Values).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.REMOVED)));
 			var rl = new XReportList(_xname, XReportItemState.CHANGE, items);
 			return rl;
 		}
@@ -168,21 +173,32 @@ namespace XTransport.Client
 					}
 					if (_firstTime)
 					{
-						m_list.Clear();
+						m_dict.Clear();
 						foreach (var item in m_original)
 						{
-							AddSilently(item);
-							//Add(item);
+							((IXCollection<TKind>)this).AddSilently(item);
 						}
 					}
 					break;
 				case XReportItemState.CHANGE:
-					//Clear();
-					//foreach (var item in m_original)
-					//{
-					//    Add(item);
-					//}
-					Revert();
+					var items = m_dict.Values.ToArray();
+					foreach (var item in items)
+					{
+						if (!m_original.Contains(item))
+						{
+							((IXCollection<TKind>)this).RemoveSilently(item.Uid);
+							item.Changed -= ItemChanged;
+							m_client.Release(item);
+							m_client.RefDeleted(item);
+						}
+					}
+					foreach (var item in m_original)
+					{
+						if (!items.Contains(item))
+						{
+							((IXCollection<TKind>)this).AddSilently(item);
+						}
+					}
 
 					foreach (var item in rl.Items)
 					{
@@ -190,10 +206,10 @@ namespace XTransport.Client
 						{
 							case EReportListItemState.ADDED:
 								var add = GetChild(item);
-								Add(add);
+								((IXCollection<TKind>)this).AddSilently(add);
 								break;
 							case EReportListItemState.REMOVED:
-								Remove(m_list.Values.Single(_arg => _arg.Uid == item.Uid));
+								((IXCollection<TKind>)this).RemoveSilently(item.Uid);
 								break;
 							default:
 								throw new ArgumentOutOfRangeException();
@@ -208,19 +224,19 @@ namespace XTransport.Client
 
 		public override void Revert()
 		{
-			var objects = m_list.Values.ToArray();
-			foreach (var obj in objects)
+			var objects = m_dict.Values.ToArray();
+			foreach (var item in objects)
 			{
-				if (!m_original.Contains(obj))
+				if (!m_original.Contains(item))
 				{
-					Remove(obj);
+					((IXCollection<TKind>)this).RemoveSilently(item.Uid);
 				}
 			}
-			foreach (var obj in m_original)
+			foreach (var item in m_original)
 			{
-				if (!objects.Contains(obj))
+				if (!objects.Contains(item))
 				{
-					Add(obj);
+					((IXCollection<TKind>)this).AddSilently(item);
 				}
 			}
 			foreach (var uid in GetUids())
@@ -234,7 +250,7 @@ namespace XTransport.Client
 			if (IsDirtyAndHaveReportItems)
 			{
 				m_original.Clear();
-				m_original.AddRange(m_list.Values);
+				m_original.AddRange(m_dict.Values);
 			}
 			m_isDirty = false;
 			m_isDirtyAndHaveReportItems = false;
@@ -244,25 +260,15 @@ namespace XTransport.Client
 
 		private void AddedToCollection(T _item)
 		{
-			var kindId = m_client.KindToIntInternal(_item.Kind);
-			if (kindId != m_fieldId)
-			{
-				m_owner.AddedToCollection(_item, kindId);
-			}
-			foreach(var kind in m_client.AddIfNotExists(_item, m_owner))
-			{
-				if(kind!=m_fieldId) m_owner.AddedToCollection(_item, kind);
-			}
+			m_client.AddIfNotExists(_item, m_owner, m_fieldId);
 			_item.Changed += ItemChanged;
 			OnChanged();
 		}
 
 		private void RemovedFromCollection(T _item)
 		{
-			m_owner.RemovedFromCollection(_item);
+			m_client.RemovedFromCollection(_item, m_owner);
 			_item.Changed -= ItemChanged;
-			m_client.Release(_item);
-			m_client.RefDeleted(_item);
 			OnChanged();
 		}
 
@@ -286,7 +292,7 @@ namespace XTransport.Client
 			if (m_observableCollection == null)
 			{
 				m_uiDispatcher = Dispatcher.CurrentDispatcher;
-				m_observableCollection = new ObservableCollection<T>(m_list.Values);
+				m_observableCollection = new ObservableCollection<T>(m_dict.Values);
 			}
 			return new ReadOnlyObservableCollection<T>(m_observableCollection);
 		}
@@ -315,14 +321,14 @@ namespace XTransport.Client
 
 		private bool RecalcIsDirty()
 		{
-			return m_list.Values.Any(_arg => _arg.IsDirty);
+			return m_dict.Values.Any(_arg => _arg.IsDirty);
 		}
 
 		private bool RecalcIsDirtyAndHaveReportItems()
 		{
-			if (m_list.Count != m_original.Count) return true;
-			if (m_list.Values.Except(m_original).Any()) return true;
-			if (m_original.Except(m_list.Values).Any()) return true;
+			if (m_dict.Count != m_original.Count) return true;
+			if (m_dict.Values.Except(m_original).Any()) return true;
+			if (m_original.Except(m_dict.Values).Any()) return true;
 			return false;
 		}
 

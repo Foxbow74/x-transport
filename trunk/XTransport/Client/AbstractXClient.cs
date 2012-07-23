@@ -19,15 +19,26 @@ namespace XTransport.Client
 
 		protected AbstractXClient()
 		{
+			SetAbstractRootKindMap(GetAbstractRootKindMap());
 			m_transport = new XTransportClient();
 			m_sessionId = m_transport.Login(UserUid);
 			m_transport.ServerObjectSaved += OnServerObjectSaved;
 		}
 
+		protected abstract IEnumerable<KeyValuePair<TKind, TKind>> GetAbstractRootKindMap();
+
 		public abstract Guid UserUid { get; }
 
 		internal void ClientObjectChanged(XReport _xReport)
 		{
+			if(_xReport.Uid==GetRootDescriptor().Uid)
+			{
+				var toDel = _xReport.Items.Where(_item => m_abstractKinds.Contains(_item.FieldId)).ToArray();
+				foreach (var item in toDel)
+				{
+					_xReport.Items.Remove(item);
+				}
+			}
 			m_transport.ClientObjectChanged(_xReport, m_sessionId);
 		}
 
@@ -54,11 +65,11 @@ namespace XTransport.Client
 			return m_root;
 		}
 
-		internal IEnumerable<int> AddIfNotExists(IClientXObjectInternal<TKind> _child, IClientXObjectInternal<TKind> _collectionOwner)
+		internal void AddIfNotExists(IClientXObjectInternal<TKind> _child, IClientXObjectInternal<TKind> _collectionOwner, int _fieldId)
 		{
 			if (m_descriptors.ContainsKey(_child.Uid))
 			{
-				return Enumerable.Empty<int>();
+				return;
 			}
 			var parentUid = _collectionOwner.Uid;
 			if (_child is IClientXChildObject<TKind>)
@@ -66,13 +77,33 @@ namespace XTransport.Client
 				((IClientXChildObject<TKind>) _child).SetParent(_collectionOwner);
 			}
 			_child.OnInstantiationFinished(this);
-			var report = new XReport(_child.Uid, _child.GetChanges(), DateTime.Now, KindToInt(_child.Kind));
-			var alsoKnownAs = m_transport.AddNew(report, m_sessionId, _collectionOwner.Uid);
-			var descriptor = new ClientXObjectDescriptor<TKind>(_child.Uid, this);
-			descriptor.SetParentUid(parentUid);
+			
+			var kindId = KindToInt(_child.Kind);
+			var report = new XReport(_child.Uid, _child.GetChanges(), DateTime.Now, kindId);
+
+			m_transport.AddNew(report, m_sessionId, _collectionOwner.Uid);
+
+			if (_collectionOwner.Uid.Equals(m_root.Uid))
+			{
+				var alsoKnownAs = new List<TKind>(m_abstractRootKindMap[_child.Kind]) { _child.Kind };
+				m_root.AddedToCollection(_child, alsoKnownAs);
+			}
+			else
+			{
+				_collectionOwner.AddedToCollection(_child, _fieldId);
+			}
+			var descriptor = new ClientXObjectDescriptor<TKind>(_child, this, kindId, parentUid);
 			m_descriptors.Add(_child.Uid, descriptor);
-			descriptor.AddNew(_child, KindToInt(_child.Kind));
-			return alsoKnownAs;
+		}
+
+		internal void RemovedFromCollection(IClientXObjectInternal<TKind> _child, IClientXObjectInternal<TKind> _collectionOwner)
+		{
+			if (_collectionOwner.Uid.Equals(m_root.Uid))
+			{
+				m_root.RemovedFromCollection(_child);
+			}
+			Release(_child);
+			RefDeleted(_child);
 		}
 
 		internal int KindToIntInternal(TKind _kind)
@@ -86,6 +117,7 @@ namespace XTransport.Client
 		}
 
 		protected abstract int KindToInt(TKind _kind);
+
 		protected abstract TKind IntToKind(int _kind);
 
 		internal Dispatcher GetUiDispatcherInternal()
@@ -95,7 +127,47 @@ namespace XTransport.Client
 
 		internal ServerXReport GetReport(int _kind, Guid _uid)
 		{
-			return m_transport.GetReport(_kind, _uid, m_sessionId);
+			var report = m_transport.GetReport(_kind, _uid, m_sessionId);
+			if(report.Uid==GetRootDescriptor().Uid)
+			{
+				#region add aggregated lists
+
+				var lists = report.Items.OfType<XReportList>().ToList();
+				var dict = new Dictionary<TKind, Dictionary<XReportItemState, List<XReportListItem>>>();
+				foreach (var list in lists)
+				{
+					foreach (var kind in m_abstractRootKindMap[IntToKind(list.FieldId)])
+					{
+						Dictionary<XReportItemState, List<XReportListItem>> dictionary;
+						if(!dict.TryGetValue(kind, out dictionary))
+						{
+							dictionary = new Dictionary<XReportItemState, List<XReportListItem>>();
+							dict.Add(kind, dictionary);
+						}
+						List<XReportListItem> items;
+						if(!dictionary.TryGetValue(list.State, out items))
+						{
+							items = new List<XReportListItem>(list.Items);
+							dictionary.Add(list.State, items);
+						}
+						else
+						{
+							items.AddRange(list.Items);
+						}
+					}
+				}
+				foreach (var kindPair in dict)
+				{
+					foreach (var stateAndList in kindPair.Value)
+					{
+						report.Items.Add(new XReportList(KindToInt(kindPair.Key), stateAndList.Key, stateAndList.Value));
+					}
+				}
+
+				#endregion
+
+			}
+			return report;
 		}
 
 		protected virtual Dispatcher GetUiDispatcher()
@@ -202,6 +274,31 @@ namespace XTransport.Client
 		public void ChildChanged(Guid _parentUid)
 		{
 			GetDescriptor(_parentUid).ChildChanged();
+		}
+
+		private int[] m_abstractKinds = new int[0];
+		private readonly Dictionary<TKind, List<TKind>> m_abstractRootKindMap = new Dictionary<TKind, List<TKind>>();
+
+		void SetAbstractRootKindMap(IEnumerable<KeyValuePair<TKind, TKind>> _map)
+		{
+			m_abstractRootKindMap.Clear();
+			m_abstractKinds = new int[0];
+			var keys = _map.Select(_pair => _pair.Key).Distinct().ToList();
+			var values = _map.Select(_pair => _pair.Value).Distinct().ToArray();
+			foreach (var kind in keys)
+			{
+				if(values.Contains(kind))
+				{
+					throw new ApplicationException("Map key " + kind + " can't value");
+				}
+			}
+			m_abstractKinds = values.Select(KindToInt).ToArray();
+			foreach (var kind in keys)
+			{
+				var kindCopy = kind;
+				var list = _map.Where(_pair => _pair.Key.Equals(kindCopy)).Select(_pair => _pair.Value).Distinct().ToList();
+				m_abstractRootKindMap.Add(kind, list);
+			}
 		}
 	}
 }

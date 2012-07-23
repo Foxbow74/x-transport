@@ -31,13 +31,11 @@ namespace XTransportTest
 		public void Add()
 		{
 			var cl = new TstClient();
-			foreach (var parentItem in cl.GetRoot<Root>().ParentItems)
-			{
-				Debug.WriteLine(parentItem.GetHashCode());
-			}
 			var pr = cl.GetRoot<Root>().ParentItems.First();
+			var cnt = pr.Children.Count;
 			var child = new Child {Value = 3.0};
 			pr.Children.Add(child);
+			Assert.AreEqual(cnt+1, pr.Children.Count);
 			Assert.AreEqual(pr, child.Parent);
 		}
 

@@ -56,10 +56,13 @@ namespace XTransportTest
 			Assert.AreEqual(rt1.RefItems.First().Ref, rt1.AItems.First());
 			Assert.AreNotEqual(rt1.RefItems.First().Ref, rt1.AItems.ToList()[1]);
 			rt1.RefItems.First().Ref = rt1.AItems.ToList()[1];
+			Wait();
 			rt2.RefItems.First().Ref = rt2.AItems.ToList()[1];
-
+			Wait();
 			cl1.Save(rt1.Uid);
+			Wait();
 			cl2.Undo(rt2.Uid);
+			Wait();
 			Assert.AreEqual(rt2.RefItems.First().Ref.Uid, rt2.AItems.First().Uid);
 			Assert.AreEqual(rt2.RefItems.First().Ref, rt2.AItems.First());
 		}
@@ -76,13 +79,16 @@ namespace XTransportTest
 			var cnt = rt1.AItems.Count;
 
 			rt1.AItems.Remove(rt1.AItems.First());
+			Wait();
 			rt2.AItems.Remove(rt2.AItems.First());
-
+			Wait();
 			cl1.Save(rt1.Uid);
 			Wait(1000, () => rt1.IsDirty);
 			cl2.Undo(rt2.Uid);
+			Wait();
 			Assert.AreEqual(cnt, rt2.AItems.Count);
 			cl2.Undo(rt2.Uid);
+			Wait();
 			Assert.AreEqual(rt1.AItems.Count, rt2.AItems.Count);
 		}
 
@@ -98,13 +104,16 @@ namespace XTransportTest
 			var aValue = rt1.AItems.Last().Value;
 
 			rt1.AItems.Add(new A { Value = 100 });
+			Wait();
 			rt2.AItems.Add(new A { Value = 200 });
-
+			Wait();
 			cl1.Save(rt1.Uid);
 			Wait(1000, () => rt1.IsDirty);
 			cl2.Undo(rt2.Uid);
+			Wait();
 			Assert.AreEqual(aValue, rt2.AItems.Last().Value);
 			cl2.Undo(rt2.Uid);
+			Wait();
 			Assert.AreEqual(rt1.AItems.Last().Value, rt2.AItems.Last().Value);
 		}
 	}

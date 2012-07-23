@@ -23,7 +23,7 @@ namespace XTransport
 
 		public override string ToString()
 		{
-			return State + " " + FieldId;
+			return State + " FID:" + FieldId;
 		}
 
 		public abstract AbstractXReportItem CreateDefaultReportItem();

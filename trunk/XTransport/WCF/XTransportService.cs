@@ -82,9 +82,9 @@ namespace XTransport.WCF
 			return Implementation.Login(_userUid);
 		}
 
-		public IEnumerable<int> AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid)
+		public void AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid)
 		{
-			return Implementation.AddNew(_xReport, _sessionId, _parentUid);
+			Implementation.AddNew(_xReport, _sessionId, _parentUid);
 		}
 
 		public Guid GetRootUid()

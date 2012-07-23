@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using XTransport.Server.Storage;
@@ -61,12 +60,11 @@ namespace XTransport.Server
 			return ss.SessionId;
 		}
 
-		internal IEnumerable<int> AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid)
+		internal void AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid)
 		{
 			var obj = new ServerXObjectContainer(_xReport.Kind, _xReport.Uid, default(DateTime));
 			obj.FillFromClient(_xReport, _sessionId);
 			m_objects.Add(_xReport.Uid, obj);
-			return KindAlsoKnownAs(_xReport.Kind);
 		}
 
 		internal ServerXReport GetReport(int _kind, Guid _uid, SessionId _sessionId)
@@ -192,11 +190,6 @@ namespace XTransport.Server
 
 		protected abstract IStorage CreateStorage();
 
-		internal IEnumerable<int> KindAlsoKnownAsInternal(int _kind)
-		{
-			return KindAlsoKnownAs(_kind);
-		}
-
 		internal void ClientObjectReverted(Guid _uid, SessionId _sessionId)
 		{
 			m_objects[_uid].Revert(_sessionId);
@@ -271,11 +264,6 @@ namespace XTransport.Server
 			remove { m_serverObjectSaved -= value; }
 		}
 
-		protected virtual IEnumerable<int> KindAlsoKnownAs(int _kind)
-		{
-			yield break;
-		}
-
 		private void OnServerObjectSaved(Guid _uid, SessionId _sessionId)
 		{
 			Console.WriteLine("SAVED:" + _uid);
@@ -297,6 +285,7 @@ namespace XTransport.Server
 
 		public virtual void Reset()
 		{
+			m_serverObjectSaved = null;
 			m_root = null;
 			m_objects.Clear();
 			if (LoadAllOnStart)
