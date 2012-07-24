@@ -56,7 +56,7 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var root = cl.GetRoot<Root>();
 			var cnt = root.BItems.Count;
-			root.BItems.Add(new B { Value = "A" });
+			root.BItems.Add(new B {Value = "A"});
 			Wait();
 			root.BItems.Last().Value = "AA";
 			Wait();
@@ -86,7 +86,7 @@ namespace XTransportTest
 			Assert.AreEqual(cnt, root.AItems.Count);
 
 			cl.Redo(root.Uid);
-			Assert.AreEqual(cnt+1, root.AItems.Count);
+			Assert.AreEqual(cnt + 1, root.AItems.Count);
 		}
 
 		[TestMethod]

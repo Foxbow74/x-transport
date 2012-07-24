@@ -31,20 +31,20 @@ namespace XTransportTest
 			//Wait(1000);
 		}
 
-		protected static void Wait(int _times=1)
+		protected static void Wait(int _times = 1)
 		{
 			Thread.Sleep(_times);
 		}
 
 		protected static void Wait(int _maxTimes, Func<bool> _while)
 		{
-			int i = 0;
+			var i = 0;
 			while (_while())
 			{
 				Thread.Sleep(1);
 				if (i++ == _maxTimes) break;
 			}
-			if(i>0)
+			if (i > 0)
 			{
 				Console.WriteLine("Wait takes " + new TimeSpan(0, 0, 0, 0, i));
 			}

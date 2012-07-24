@@ -362,7 +362,7 @@ namespace XTransport
 				ExecuteInsertOrUpdate(CreateCommand("INSERT INTO main (uid, kind, vfrom) VALUES (@uid, @kind, @from)",
 				                                    new SqliteParameter("@uid", _uplodableObject.Uid),
 				                                    new SqliteParameter("@kind", _uplodableObject.Kind),
-													new SqliteParameter("@from", now)));
+				                                    new SqliteParameter("@from", now)));
 			}
 			else
 			{
@@ -372,7 +372,7 @@ namespace XTransport
 					              new SqliteParameter("@parent", _parent),
 					              new SqliteParameter("@kind", _uplodableObject.Kind),
 					              new SqliteParameter("@field", _field),
-								  new SqliteParameter("@from", now)));
+					              new SqliteParameter("@from", now)));
 			}
 			var id = m_connection.LastInsertRowId;
 			_uplodableObject.SaveFields(this, now);

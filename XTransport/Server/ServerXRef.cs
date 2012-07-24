@@ -30,7 +30,7 @@ namespace XTransport.Server
 		#region IServerXValue Members
 
 		public int SaveOriginalValue(Guid _uid, AbstractXReportItem _reportItem, IStorage _storage,
-		                                       int? _lastId, DateTime _now, AbstractXServer _abstractXServer)
+		                             int? _lastId, DateTime _now, AbstractXServer _abstractXServer)
 		{
 			var item = (XReportItem<Guid>) _reportItem;
 			Value = item.Value;

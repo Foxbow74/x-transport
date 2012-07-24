@@ -11,10 +11,11 @@ namespace XTransport.Client
 	internal sealed class XCollection<T, TKind> : AbstractXValue, ICollection<T>, IXCollection<TKind>
 		where T : ClientXObject<TKind>
 	{
-		private readonly IXObjectFactory<TKind> m_factory;
 		private readonly Dictionary<Guid, T> m_dict = new Dictionary<Guid, T>();
+		private readonly IXObjectFactory<TKind> m_factory;
 		private readonly List<T> m_original = new List<T>();
 		private AbstractXClient<TKind> m_client;
+		private int m_fieldId;
 		private bool m_isDirty;
 		private bool m_isDirtyAndHaveReportItems;
 
@@ -22,14 +23,13 @@ namespace XTransport.Client
 
 		private ClientXObject<TKind> m_owner;
 		private Dispatcher m_uiDispatcher;
-		private int m_fieldId;
 
 		internal XCollection(IXObjectFactory<TKind> _factory)
 		{
 			m_factory = _factory;
 		}
 
-	 	internal XCollection()
+		internal XCollection()
 		{
 		}
 
@@ -152,8 +152,10 @@ namespace XTransport.Client
 			}
 #endif
 			var items = new List<XReportListItem>();
-			items.AddRange(m_dict.Values.Except(m_original).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.ADDED)));
-			items.AddRange(m_original.Except(m_dict.Values).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.REMOVED)));
+			items.AddRange(
+				m_dict.Values.Except(m_original).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.ADDED)));
+			items.AddRange(
+				m_original.Except(m_dict.Values).Select(_arg => new XReportListItem(_arg.Uid, EReportListItemState.REMOVED)));
 			var rl = new XReportList(_xname, XReportItemState.CHANGE, items);
 			return rl;
 		}
@@ -174,7 +176,7 @@ namespace XTransport.Client
 						m_dict.Clear();
 						foreach (var item in m_original)
 						{
-							((IXCollection<TKind>)this).AddSilently(item);
+							((IXCollection<TKind>) this).AddSilently(item);
 						}
 					}
 					break;
@@ -184,7 +186,7 @@ namespace XTransport.Client
 					{
 						if (!m_original.Contains(item))
 						{
-							((IXCollection<TKind>)this).RemoveSilently(item.Uid);
+							((IXCollection<TKind>) this).RemoveSilently(item.Uid);
 							item.Changed -= ItemChanged;
 							m_client.Release(item);
 							m_client.RefDeleted(item);
@@ -194,7 +196,7 @@ namespace XTransport.Client
 					{
 						if (!items.Contains(item))
 						{
-							((IXCollection<TKind>)this).AddSilently(item);
+							((IXCollection<TKind>) this).AddSilently(item);
 						}
 					}
 
@@ -204,10 +206,10 @@ namespace XTransport.Client
 						{
 							case EReportListItemState.ADDED:
 								var add = GetChild(item);
-								((IXCollection<TKind>)this).AddSilently(add);
+								((IXCollection<TKind>) this).AddSilently(add);
 								break;
 							case EReportListItemState.REMOVED:
-								((IXCollection<TKind>)this).RemoveSilently(item.Uid);
+								((IXCollection<TKind>) this).RemoveSilently(item.Uid);
 								break;
 							default:
 								throw new ArgumentOutOfRangeException();
@@ -227,14 +229,14 @@ namespace XTransport.Client
 			{
 				if (!m_original.Contains(item))
 				{
-					((IXCollection<TKind>)this).RemoveSilently(item.Uid);
+					((IXCollection<TKind>) this).RemoveSilently(item.Uid);
 				}
 			}
 			foreach (var item in m_original)
 			{
 				if (!objects.Contains(item))
 				{
-					((IXCollection<TKind>)this).AddSilently(item);
+					((IXCollection<TKind>) this).AddSilently(item);
 				}
 			}
 			foreach (var uid in GetUids())
@@ -335,7 +337,7 @@ namespace XTransport.Client
 			var descriptor = m_client.GetDescriptor(_item.Uid);
 			var item = descriptor.Get<T>(m_factory);
 			var child = item as IClientXChildObject<TKind>;
-			if (child!=null)
+			if (child != null)
 			{
 				child.SetParent(m_owner);
 				descriptor.SetParentUid(m_owner.Uid);

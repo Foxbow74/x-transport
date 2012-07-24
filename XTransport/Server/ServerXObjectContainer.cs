@@ -110,7 +110,7 @@ namespace XTransport.Server
 				var reverseReport = new XReport(changes.Uid, reverseItems, _now, changes.Kind);
 				foreach (var pair in m_changes)
 				{
-					if(pair.Key==_sessionId)
+					if (pair.Key == _sessionId)
 					{
 						continue;
 					}
@@ -200,7 +200,9 @@ namespace XTransport.Server
 			var uids = new List<Guid>();
 			if (changes != null)
 			{
-				uids.AddRange(changes.Items.OfType<XReportList>().SelectMany(_list => _list.Items).Where(_item => _item.State == EReportListItemState.ADDED).Select(_item => _item.Uid));
+				uids.AddRange(
+					changes.Items.OfType<XReportList>().SelectMany(_list => _list.Items).Where(
+						_item => _item.State == EReportListItemState.ADDED).Select(_item => _item.Uid));
 			}
 
 			foreach (var pair in m_xValues)
@@ -274,7 +276,9 @@ namespace XTransport.Server
 			var uids = new List<Guid>();
 			if (changes != null)
 			{
-				uids.AddRange(changes.Items.OfType<XReportList>().SelectMany(_list => _list.Items).Where(_item => _item.State == EReportListItemState.ADDED).Select(_item => _item.Uid));
+				uids.AddRange(
+					changes.Items.OfType<XReportList>().SelectMany(_list => _list.Items).Where(
+						_item => _item.State == EReportListItemState.ADDED).Select(_item => _item.Uid));
 			}
 			foreach (var pair in m_xValues)
 			{

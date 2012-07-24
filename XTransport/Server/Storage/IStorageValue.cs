@@ -10,7 +10,7 @@ namespace XTransport.Server.Storage
 		int Id { get; set; }
 	}
 
-	interface IStorageValueInternal : IStorageValue
+	internal interface IStorageValueInternal : IStorageValue
 	{
 		IServerXValue CreateIServerXValue();
 	}

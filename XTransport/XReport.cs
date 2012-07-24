@@ -57,8 +57,10 @@ namespace XTransport
 			var items = new List<AbstractXReportItem>();
 			foreach (var reportItem in Items)
 			{
-				var newItem = reportItem.UpdateAccordingNewValue(_xValues[reportItem.FieldId], _reverseReport.Items.SingleOrDefault(_item => _item.FieldId==reportItem.FieldId));
-				if(newItem!=null)
+				var newItem = reportItem.UpdateAccordingNewValue(_xValues[reportItem.FieldId],
+				                                                 _reverseReport.Items.SingleOrDefault(
+				                                                 	_item => _item.FieldId == reportItem.FieldId));
+				if (newItem != null)
 				{
 					items.Add(newItem);
 				}

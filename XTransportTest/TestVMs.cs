@@ -108,7 +108,7 @@ namespace XTransportTest
 			ThreadPool.QueueUserWorkItem(_state =>
 			                             	{
 			                             		Wait();
-												parentM.List.Remove(parentM.List.First());
+			                             		parentM.List.Remove(parentM.List.First());
 			                             		mre.Set();
 			                             	});
 			Assert.AreEqual(true, mre.WaitOne(100));

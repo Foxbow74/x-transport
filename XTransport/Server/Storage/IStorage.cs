@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace XTransport.Server.Storage
 {
-	public interface IStorage:IDisposable
+	public interface IStorage : IDisposable
 	{
 		int InsertValue<T>(Guid _uid, int _field, T _value, int? _lastId, DateTime _now);
 		void Delete(Guid _storedId, int _field, DateTime _now);
-		
+
 		IEnumerable<StorageRootObject> LoadRoot();
 		IEnumerable<IStorageRecord> LoadAll();
 		DateTime LoadObjectParameters(Guid _uid, out int _kind);

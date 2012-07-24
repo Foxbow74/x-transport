@@ -6,7 +6,7 @@ namespace XTransport.Server.Storage
 	{
 		public T Val { get; set; }
 
-		#region IStorageValue Members
+		#region IStorageValueInternal Members
 
 		public Guid Owner { get; set; }
 		public int Field { get; set; }

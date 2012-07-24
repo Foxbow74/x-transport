@@ -51,9 +51,8 @@ namespace XTransportTest
 			Wait(100, () => a.IsDirty);
 			a.Value = 20;
 			cl1.Revert(a.Uid);
-			Wait(100, () => a.Value==20);
+			Wait(100, () => a.Value == 20);
 			Assert.AreEqual(10, a.Value);
 		}
-
 	}
 }

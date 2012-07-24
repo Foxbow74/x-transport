@@ -24,16 +24,6 @@ namespace XTransportTest.Client
 		}
 
 
-		protected override IEnumerable<KeyValuePair<ETestKind, ETestKind>> GetAbstractRootKindMap()
-		{
-			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.A, ETestKind.AB);
-			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.B, ETestKind.AB);
-			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.A, ETestKind.ALL);
-			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.B, ETestKind.ALL);
-			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.PARENT, ETestKind.ALL);
-			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.REF, ETestKind.ALL);
-		}
-
 		public TstClient()
 		{
 			m_userUid = Guid.NewGuid();
@@ -42,6 +32,16 @@ namespace XTransportTest.Client
 		public override Guid UserUid
 		{
 			get { return m_userUid; }
+		}
+
+		protected override IEnumerable<KeyValuePair<ETestKind, ETestKind>> GetAbstractRootKindMap()
+		{
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.A, ETestKind.AB);
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.B, ETestKind.AB);
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.A, ETestKind.ALL);
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.B, ETestKind.ALL);
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.PARENT, ETestKind.ALL);
+			yield return new KeyValuePair<ETestKind, ETestKind>(ETestKind.REF, ETestKind.ALL);
 		}
 
 		protected override int KindToInt(ETestKind _kind)
