@@ -7,12 +7,51 @@ namespace XTransport.Client
 {
 	public abstract class ClientXObject<TKind> : IClientXObject<TKind> //, IClientXObjectInternal<TKind>
 	{
+		private readonly Dictionary<int, IXValueInternal> m_xValues = new Dictionary<int, IXValueInternal>();
+		private int m_batchChanges;
+		private bool m_batchUpdating;
+
+		protected ClientXObject()
+		{
+			List<XFieldInfo<TKind>> list;
+			if (!m_xValueInfos.TryGetValue(GetType(), out list))
+			{
+				list = InitializeType(GetType());
+			}
+
+			Uid = Guid.NewGuid();
+
+			foreach (var info in list)
+			{
+				IXValueInternal xfield;
+				if (info.Factory == null)
+				{
+					xfield = (IXValueInternal) info.Constructor.Invoke(new object[] {});
+				}
+				else
+				{
+					xfield = (IXValueInternal) info.Constructor.Invoke(new object[] {info.Factory,});
+				}
+				var xlist = xfield as IXCollection<TKind>;
+				if (xlist != null)
+				{
+					xlist.SetOwnerInfo(this, info.FieldId);
+				}
+				info.Field.SetValue(this, xfield);
+				m_xValues.Add(info.FieldId, xfield);
+			}
+			SubscribePersistedValuesChanges();
+		}
+
 		public DateTime Stored { get; internal set; }
 
-		#region IXObject<TKind> Members
+		#region IClientXObject<TKind> Members
 
 		public Guid Uid { get; internal set; }
 		public abstract TKind Kind { get; }
+
+		public event Action<IClientXObject<TKind>> Changed;
+		public bool IsDirty { get; private set; }
 
 		#endregion
 
@@ -116,42 +155,6 @@ namespace XTransport.Client
 
 		#endregion
 
-		private readonly Dictionary<int, IXValueInternal> m_xValues = new Dictionary<int, IXValueInternal>();
-		private int m_batchChanges;
-		private bool m_batchUpdating;
-
-		protected ClientXObject()
-		{
-			List<XFieldInfo<TKind>> list;
-			if (!m_xValueInfos.TryGetValue(GetType(), out list))
-			{
-				list = InitializeType(GetType());
-			}
-
-			Uid = Guid.NewGuid();
-
-			foreach (var info in list)
-			{
-				IXValueInternal xfield;
-				if (info.Factory == null)
-				{
-					xfield = (IXValueInternal) info.Constructor.Invoke(new object[] {});
-				}
-				else
-				{
-					xfield = (IXValueInternal) info.Constructor.Invoke(new object[] {info.Factory,});
-				}
-				var xlist = xfield as IXCollection<TKind>;
-				if (xlist!=null)
-				{
-					xlist.SetOwnerInfo(this, info.FieldId);
-				}
-				info.Field.SetValue(this, xfield);
-				m_xValues.Add(info.FieldId, xfield);
-			}
-			SubscribePersistedValuesChanges();
-		}
-
 		internal void OnInstantiationFinished(AbstractXClient<TKind> _client)
 		{
 			if (this is IXClientUserInternal<TKind>)
@@ -167,11 +170,11 @@ namespace XTransport.Client
 			InstantiationFinished();
 		}
 
-		public event Action<IClientXObject<TKind>> Changed;
-
 		internal IEnumerable<AbstractXReportItem> GetChanges()
 		{
-			return m_xValues.Where(_pair => _pair.Value.IsDirtyAndHaveReportItems).Select(_pair => _pair.Value.GetXReportItem(_pair.Key));
+			return
+				m_xValues.Where(_pair => _pair.Value.IsDirtyAndHaveReportItems).Select(
+					_pair => _pair.Value.GetXReportItem(_pair.Key));
 		}
 
 		internal void SetUid(Guid _uid)
@@ -196,7 +199,7 @@ namespace XTransport.Client
 			if (!m_xValues.TryGetValue(_fieldId, out value)) return;
 
 			var list = value as IXCollection<TKind>;
-			if(list==null)
+			if (list == null)
 			{
 				throw new ApplicationException();
 			}
@@ -208,7 +211,7 @@ namespace XTransport.Client
 			foreach (var list in m_xValues.Values.OfType<IXCollection<TKind>>())
 			{
 				list.RemoveSilently(_item.Uid);
-			}	
+			}
 		}
 
 		internal void ApplyChanges(XReport _report, bool _firstTime)
@@ -238,8 +241,6 @@ namespace XTransport.Client
 				xValue.Revert();
 			}
 		}
-
-		public bool IsDirty { get; private set; }
 
 		internal void Revert()
 		{

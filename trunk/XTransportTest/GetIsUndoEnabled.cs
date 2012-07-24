@@ -62,7 +62,7 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var root = cl.GetRoot<RootVM>();
 			Wait();
-			root.AItems.Add(new Avm { Value = 99 });
+			root.AItems.Add(new Avm {Value = 99});
 			Assert.AreEqual(true, cl.GetIsUndoEnabled(root.Uid));
 			cl.Save(root.Uid);
 			Wait(1000, () => root.IsDirty);

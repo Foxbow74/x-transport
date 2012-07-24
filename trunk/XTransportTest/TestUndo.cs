@@ -44,7 +44,7 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var rt = cl.GetRoot<Root>();
 			var cnt = rt.AItems.Count;
-			var a = new A { Value = 1 };
+			var a = new A {Value = 1};
 			rt.AItems.Add(a);
 			Wait();
 			a.Value = 2;
@@ -61,14 +61,14 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var rt = cl.GetRoot<Root>();
 			var cnt = rt.AItems.Count;
-			rt.AItems.Add(new A { Value = 99 });
+			rt.AItems.Add(new A {Value = 99});
 			Wait();
 			rt.AItems.Last().Value = 100;
 			Wait();
-			rt.AItems.Add(new A { Value = 101 });
+			rt.AItems.Add(new A {Value = 101});
 			Wait();
 			cl.Undo(rt.Uid);
-			Assert.AreEqual(cnt+1, rt.AItems.Count);
+			Assert.AreEqual(cnt + 1, rt.AItems.Count);
 			Assert.AreEqual(100, rt.AItems.Last().Value);
 			cl.Undo(rt.Uid);
 			Assert.AreEqual(99, rt.AItems.Last().Value);

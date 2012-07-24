@@ -3,9 +3,9 @@ using XTransport;
 
 namespace XTransportTest.Client
 {
-	class Parent : XObject
+	internal class Parent : XObject
 	{
-		[X("LIST")]private ICollection<Child> m_value;
+		[X("LIST")] private ICollection<Child> m_value;
 
 		public override ETestKind Kind
 		{

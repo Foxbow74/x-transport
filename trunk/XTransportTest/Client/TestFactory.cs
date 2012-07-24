@@ -4,8 +4,10 @@ using XTransport.Client;
 
 namespace XTransportTest.Client
 {
-	class TestFactory : IXObjectFactory<ETestKind>
+	internal class TestFactory : IXObjectFactory<ETestKind>
 	{
+		#region IXObjectFactory<ETestKind> Members
+
 		public ETestKind Kind
 		{
 			get { return ETestKind.ALL; }
@@ -28,5 +30,7 @@ namespace XTransportTest.Client
 			}
 			throw new ArgumentOutOfRangeException();
 		}
+
+		#endregion
 	}
 }

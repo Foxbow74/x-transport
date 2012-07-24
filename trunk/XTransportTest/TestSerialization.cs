@@ -5,7 +5,6 @@ using System.Text;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XTransport;
-using XTransport.Client;
 using XTransportTest.Client;
 
 namespace XTransportTest

@@ -131,7 +131,8 @@ namespace XTransport.Server
 			return reports;
 		}
 
-		internal void GetAvailableUndoDate(Guid _uid, SessionId _sessionId, AbstractXServer _server, ref DateTime _dateTime, ref List<Guid> _candidates)
+		internal void GetAvailableUndoDate(Guid _uid, SessionId _sessionId, AbstractXServer _server, ref DateTime _dateTime,
+		                                   ref List<Guid> _candidates)
 		{
 			ServerXObjectContainer xObjectContainer;
 			if (m_objects.TryGetValue(_uid, out xObjectContainer))
@@ -154,7 +155,8 @@ namespace XTransport.Server
 			return reports;
 		}
 
-		internal void GetAvailableRedoDate(Guid _uid, SessionId _sessionId, AbstractXServer _server, ref DateTime _dateTime, ref List<Guid> _candidates)
+		internal void GetAvailableRedoDate(Guid _uid, SessionId _sessionId, AbstractXServer _server, ref DateTime _dateTime,
+		                                   ref List<Guid> _candidates)
 		{
 			ServerXObjectContainer xObjectContainer;
 			if (m_objects.TryGetValue(_uid, out xObjectContainer))
@@ -313,7 +315,7 @@ namespace XTransport.Server
 					}
 					else if (record is IStorageValueInternal)
 					{
-						var val = (IStorageValueInternal)record;
+						var val = (IStorageValueInternal) record;
 						m_objects[val.Owner].SetValue(val.Field, val);
 					}
 					else

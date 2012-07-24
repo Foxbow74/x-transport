@@ -27,7 +27,7 @@ namespace XTransport
 
 		public override AbstractXReportItem UpdateAccordingNewValue(IServerXValue _xValue, AbstractXReportItem _reverseReport)
 		{
-			var item = (XReportItem<T>)_xValue.GetOriginalValueReportItem(-1, null);
+			var item = (XReportItem<T>) _xValue.GetOriginalValueReportItem(-1, null);
 			return item.Value.Equals(Value) ? null : this;
 		}
 

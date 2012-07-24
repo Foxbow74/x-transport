@@ -103,9 +103,9 @@ namespace XTransportTest
 
 			var aValue = rt1.AItems.Last().Value;
 
-			rt1.AItems.Add(new A { Value = 100 });
+			rt1.AItems.Add(new A {Value = 100});
 			Wait();
-			rt2.AItems.Add(new A { Value = 200 });
+			rt2.AItems.Add(new A {Value = 200});
 			Wait();
 			cl1.Save(rt1.Uid);
 			Wait(1000, () => rt1.IsDirty);

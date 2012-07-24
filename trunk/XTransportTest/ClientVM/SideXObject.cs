@@ -8,7 +8,7 @@ namespace XTransportTest.ClientVM
 	}
 
 	internal abstract class XChildObjectVM<TParent> : ClientXChildObjectVM<ETestKind, TParent>,
-	                                                            IClientSideXObject
+	                                                  IClientSideXObject
 		where TParent : XObjectVM, new()
 	{
 	}

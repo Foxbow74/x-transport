@@ -6,18 +6,14 @@ namespace XTransportTest.Client
 	internal class Root : XObject
 	{
 		[X((int) ETestKind.A)] private ICollection<A> m_aItems;
+		[XFactory(typeof (TestFactory))] [X((int) ETestKind.AB)] private ICollection<XObject> m_ab;
+		[XFactory(typeof (TestFactory))] [X((int) ETestKind.ALL)] private ICollection<XObject> m_all;
 
 		[X((int) ETestKind.B)] private ICollection<B> m_bItems;
 
 		[X((int) ETestKind.PARENT)] private ICollection<Parent> m_parentItems;
 
-		[X((int)ETestKind.REF)] private ICollection<RefObject> m_refItems;
-
-		[XFactory(typeof(TestFactory))]
-		[X((int)ETestKind.ALL)]private ICollection<XObject> m_all;
-
-		[XFactory(typeof(TestFactory))]
-		[X((int)ETestKind.AB)]private ICollection<XObject> m_ab;
+		[X((int) ETestKind.REF)] private ICollection<RefObject> m_refItems;
 
 		public ICollection<XObject> All
 		{

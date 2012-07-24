@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using XTransport;
+﻿using XTransport;
 using XTransport.Server;
 using XTransport.Server.Storage;
-using XTransportTest.Client;
 
 namespace XTransportTest.Server
 {
@@ -11,14 +8,14 @@ namespace XTransportTest.Server
 	{
 		public static string DbName { get; set; }
 
-		protected override IStorage CreateStorage()
-		{
-			return new SQLiteStorage(DbName);
-		}
-
 		protected override bool IsAsync
 		{
 			get { return false; }
+		}
+
+		protected override IStorage CreateStorage()
+		{
+			return new SQLiteStorage(DbName);
 		}
 	}
 }

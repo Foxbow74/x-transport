@@ -17,7 +17,8 @@ namespace XTransport.Server
 
 		#region IServerXValue Members
 
-		public int SaveOriginalValue(Guid _uid, AbstractXReportItem _reportItem, IStorage _storage, int? _lastId, DateTime _now, AbstractXServer _abstractXServer)
+		public int SaveOriginalValue(Guid _uid, AbstractXReportItem _reportItem, IStorage _storage, int? _lastId,
+		                             DateTime _now, AbstractXServer _abstractXServer)
 		{
 			var items = ((XReportList) _reportItem).Items;
 			foreach (var reportListItem in items)
@@ -44,7 +45,10 @@ namespace XTransport.Server
 			var resultItems = new List<XReportListItem>();
 			foreach (var item in items)
 			{
-				resultItems.Add(new XReportListItem(item.Uid, item.State==EReportListItemState.ADDED?EReportListItemState.REMOVED : EReportListItemState.ADDED));
+				resultItems.Add(new XReportListItem(item.Uid,
+				                                    item.State == EReportListItemState.ADDED
+				                                    	? EReportListItemState.REMOVED
+				                                    	: EReportListItemState.ADDED));
 			}
 			var result = new XReportList(_reportItem.FieldId, XReportItemState.CHANGE, resultItems);
 			return result;

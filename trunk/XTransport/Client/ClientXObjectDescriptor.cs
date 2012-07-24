@@ -12,7 +12,9 @@ namespace XTransport.Client
 
 		private readonly Dictionary<Type, ClientXObject<TKind>> m_instances = new Dictionary<Type, ClientXObject<TKind>>();
 
-		private readonly Dictionary<IClientXObject<TKind>, int> m_instancesCounter = new Dictionary<IClientXObject<TKind>, int>();
+		private readonly Dictionary<IClientXObject<TKind>, int> m_instancesCounter =
+			new Dictionary<IClientXObject<TKind>, int>();
+
 		private State m_currentState;
 
 		private int m_kind;
@@ -31,7 +33,8 @@ namespace XTransport.Client
 			m_client = _client;
 		}
 
-		public ClientXObjectDescriptor(ClientXObject<TKind> _clientXObjectInternal, AbstractXClient<TKind> _client, int _kindId, Guid _parentUid):this(_clientXObjectInternal.Uid, _client)
+		public ClientXObjectDescriptor(ClientXObject<TKind> _clientXObjectInternal, AbstractXClient<TKind> _client,
+		                               int _kindId, Guid _parentUid) : this(_clientXObjectInternal.Uid, _client)
 		{
 			SetParentUid(_parentUid);
 			AddNew(_clientXObjectInternal, _kindId);
@@ -134,7 +137,7 @@ namespace XTransport.Client
 		public TO Get<TO>(IXObjectFactory<TKind> _factory) where TO : ClientXObject<TKind>
 		{
 			ClientXObject<TKind> result;
-			var type = typeof(TO);
+			var type = typeof (TO);
 			if (!m_instances.TryGetValue(type, out result))
 			{
 				if (_factory == null)
@@ -157,7 +160,7 @@ namespace XTransport.Client
 					if (m_instances.TryGetValue(newType, out existed))
 					{
 						m_instancesCounter[existed]++;
-						return (TO)existed;
+						return (TO) existed;
 					}
 					m_instances.Add(type, result);
 					type = newType;
@@ -179,7 +182,7 @@ namespace XTransport.Client
 		public void Release(IClientXObject<TKind> _object)
 		{
 			var type = _object.GetType();
-			if(!m_instancesCounter.ContainsKey(_object)) return;
+			if (!m_instancesCounter.ContainsKey(_object)) return;
 			var rest = --m_instancesCounter[_object];
 			if (rest == 0)
 			{
@@ -190,7 +193,7 @@ namespace XTransport.Client
 					((IDisposable) _object).Dispose();
 				}
 			}
-			if(m_instances.Count==0)
+			if (m_instances.Count == 0)
 			{
 				Report = null;
 			}
@@ -313,6 +316,25 @@ namespace XTransport.Client
 			m_parentUid = _parentUid;
 		}
 
+		public void AddedToCollection(ClientXObject<TKind> _child, IEnumerable<TKind> _alsoKnownAs)
+		{
+			foreach (var instance in m_instances.Values)
+			{
+				foreach (var alsoKnownAs in _alsoKnownAs)
+				{
+					instance.AddedToCollection(_child, m_client.KindToIntInternal(alsoKnownAs));
+				}
+			}
+		}
+
+		public void RemovedFromCollection(ClientXObject<TKind> _child)
+		{
+			foreach (var instance in m_instances.Values)
+			{
+				instance.RemovedFromCollection(_child);
+			}
+		}
+
 		#region Nested type: State
 
 		private class State
@@ -339,24 +361,5 @@ namespace XTransport.Client
 		}
 
 		#endregion
-
-		public void AddedToCollection(ClientXObject<TKind> _child, IEnumerable<TKind> _alsoKnownAs)
-		{
-			foreach (var instance in m_instances.Values)
-			{
-				foreach (var alsoKnownAs in _alsoKnownAs)
-				{
-					instance.AddedToCollection(_child, m_client.KindToIntInternal(alsoKnownAs));
-				}
-			}
-		}
-
-		public void RemovedFromCollection(ClientXObject<TKind> _child)
-		{
-			foreach (var instance in m_instances.Values)
-			{
-				instance.RemovedFromCollection(_child);
-			}
-		}
 	}
 }
