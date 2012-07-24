@@ -5,8 +5,17 @@ using System.Reflection;
 
 namespace XTransport.Client
 {
-	public abstract class ClientXObject<TKind> : AbstractXObject<TKind>, IClientXObjectInternal<TKind>
+	public abstract class ClientXObject<TKind> : IClientXObject<TKind> //, IClientXObjectInternal<TKind>
 	{
+		public DateTime Stored { get; internal set; }
+
+		#region IXObject<TKind> Members
+
+		public Guid Uid { get; internal set; }
+		public abstract TKind Kind { get; }
+
+		#endregion
+
 		#region static part
 
 		private static readonly Dictionary<Type, List<XFieldInfo<TKind>>> m_xValueInfos =
@@ -52,7 +61,7 @@ namespace XTransport.Client
 				                                                     Type.EmptyTypes, null);
 				if (typeof (ICollection<>).MakeGenericType(genericArgumentType).IsAssignableFrom(fieldInfo.FieldType))
 				{
-					if (typeof (IClientXObjectInternal<TKind>).IsAssignableFrom(genericArgumentType))
+					if (typeof (ClientXObject<TKind>).IsAssignableFrom(genericArgumentType))
 					{
 						var tp = typeof (XCollection<,>).MakeGenericType(new[] {genericArgumentType, typeof (TKind)});
 						if (genericArgumentType.IsAbstract)
@@ -68,7 +77,7 @@ namespace XTransport.Client
 				}
 				else if (typeof (IXValue<>).MakeGenericType(genericArgumentType).IsAssignableFrom(fieldInfo.FieldType))
 				{
-					if (typeof (IClientXObjectInternal<TKind>).IsAssignableFrom(genericArgumentType))
+					if (typeof (ClientXObject<TKind>).IsAssignableFrom(genericArgumentType))
 					{
 						var tp = typeof (XRef<,>).MakeGenericType(new[] {genericArgumentType, typeof (TKind)});
 						if (genericArgumentType.IsAbstract)
@@ -143,9 +152,7 @@ namespace XTransport.Client
 			SubscribePersistedValuesChanges();
 		}
 
-		#region IClientXObjectInternal<TKind> Members
-
-		void IClientXObjectInternal<TKind>.OnInstantiationFinished(AbstractXClient<TKind> _client)
+		internal void OnInstantiationFinished(AbstractXClient<TKind> _client)
 		{
 			if (this is IXClientUserInternal<TKind>)
 			{
@@ -162,19 +169,17 @@ namespace XTransport.Client
 
 		public event Action<IClientXObject<TKind>> Changed;
 
-		IEnumerable<AbstractXReportItem> IClientXObjectInternal<TKind>.GetChanges()
+		internal IEnumerable<AbstractXReportItem> GetChanges()
 		{
-			return
-				m_xValues.Where(_pair => _pair.Value.IsDirtyAndHaveReportItems).Select(
-					_pair => _pair.Value.GetXReportItem(_pair.Key));
+			return m_xValues.Where(_pair => _pair.Value.IsDirtyAndHaveReportItems).Select(_pair => _pair.Value.GetXReportItem(_pair.Key));
 		}
 
-		void IClientXObjectInternal<TKind>.SetUid(Guid _uid)
+		internal void SetUid(Guid _uid)
 		{
 			Uid = _uid;
 		}
 
-		IEnumerable<Guid> IClientXObjectInternal<TKind>.GetChildUids()
+		internal IEnumerable<Guid> GetChildUids()
 		{
 			foreach (var list in m_xValues.Values.OfType<IXCollection<TKind>>())
 			{
@@ -185,7 +190,7 @@ namespace XTransport.Client
 			}
 		}
 
-		void IClientXObjectInternal<TKind>.AddedToCollection<T>(T _item, int _fieldId)
+		internal void AddedToCollection<T>(T _item, int _fieldId) where T : ClientXObject<TKind>
 		{
 			IXValueInternal value;
 			if (!m_xValues.TryGetValue(_fieldId, out value)) return;
@@ -198,7 +203,7 @@ namespace XTransport.Client
 			list.AddSilently(_item);
 		}
 
-		void IClientXObjectInternal<TKind>.RemovedFromCollection<T>(T _item)
+		internal void RemovedFromCollection<T>(T _item) where T : ClientXObject<TKind>
 		{
 			foreach (var list in m_xValues.Values.OfType<IXCollection<TKind>>())
 			{
@@ -206,7 +211,7 @@ namespace XTransport.Client
 			}	
 		}
 
-		void IClientXObjectInternal<TKind>.ApplyChanges(XReport _report, bool _firstTime)
+		internal void ApplyChanges(XReport _report, bool _firstTime)
 		{
 			if (_firstTime)
 			{
@@ -236,7 +241,7 @@ namespace XTransport.Client
 
 		public bool IsDirty { get; private set; }
 
-		void IClientXObjectInternal<TKind>.Revert()
+		internal void Revert()
 		{
 			foreach (var value in m_xValues.Values)
 			{
@@ -245,17 +250,14 @@ namespace XTransport.Client
 			IsDirty = false;
 		}
 
-		void IClientXObjectInternal<TKind>.SaveInternal()
+		internal void SaveInternal()
 		{
 			foreach (var value in m_xValues.Values)
 			{
 				value.Save();
 			}
 			IsDirty = false;
-			OnChanged();
 		}
-
-		#endregion
 
 		protected virtual void InstantiationFinished()
 		{

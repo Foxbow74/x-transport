@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace XTransport.Client
+﻿namespace XTransport.Client
 {
 	public abstract class ClientXChildObject<TKind, TParent> : ClientXObject<TKind>, IClientXChildObject<TKind>
 		where TParent : ClientXObject<TKind>
@@ -9,14 +7,9 @@ namespace XTransport.Client
 
 		#region IClientXChildObject<TKind> Members
 
-		void IClientXChildObject<TKind>.SetParent(IClientXObjectInternal<TKind> _xObject)
+		void IClientXChildObject<TKind>.SetParent(ClientXObject<TKind> _xObject)
 		{
 			Parent = (TParent) _xObject;
-		}
-
-		Guid IClientXChildObject<TKind>.ParentUid
-		{
-			get { return Parent.Uid; }
 		}
 
 		#endregion

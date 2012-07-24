@@ -79,7 +79,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\TstServer.cs" />
     <Compile Include="Server\Uploader.cs" />
+    <Compile Include="TestChilds.cs" />
     <Compile Include="TestClient.cs" />
+    <Compile Include="TestGetIsRedoEnabled.cs" />
     <Compile Include="TestLists.cs" />
     <Compile Include="TestRedo.cs" />
     <Compile Include="TestRefs.cs" />
