@@ -20,7 +20,7 @@ namespace XTransport.Client
 
 		private ObservableCollection<T> m_observableCollection;
 
-		private IClientXObjectInternal<TKind> m_owner;
+		private ClientXObject<TKind> m_owner;
 		private Dispatcher m_uiDispatcher;
 		private int m_fieldId;
 
@@ -103,7 +103,7 @@ namespace XTransport.Client
 			m_client = _client;
 		}
 
-		void IXCollection<TKind>.SetOwnerInfo(IClientXObjectInternal<TKind> _xObject, int _fieldId)
+		void IXCollection<TKind>.SetOwnerInfo(ClientXObject<TKind> _xObject, int _fieldId)
 		{
 			m_owner = _xObject;
 			m_fieldId = _fieldId;
@@ -114,7 +114,7 @@ namespace XTransport.Client
 			return m_dict.Keys;
 		}
 
-		void IXCollection<TKind>.AddSilently(IXObject<TKind> _item)
+		void IXCollection<TKind>.AddSilently(ClientXObject<TKind> _item)
 		{
 			if (!m_dict.ContainsKey(_item.Uid))
 			{
@@ -333,18 +333,18 @@ namespace XTransport.Client
 		private T GetChild(XReportListItem _item)
 		{
 			var descriptor = m_client.GetDescriptor(_item.Uid);
-			var child = descriptor.Get<T>(m_factory);
-			;
-			if (child is IClientXChildObject<TKind>)
+			var item = descriptor.Get<T>(m_factory);
+			var child = item as IClientXChildObject<TKind>;
+			if (child!=null)
 			{
-				((IClientXChildObject<TKind>) child).SetParent(m_owner);
+				child.SetParent(m_owner);
 				descriptor.SetParentUid(m_owner.Uid);
 			}
 			else
 			{
 				descriptor.SetParentUid(m_client.GetRootDescriptor().Uid);
 			}
-			return child;
+			return item;
 		}
 	}
 }

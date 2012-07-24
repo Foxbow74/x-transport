@@ -65,16 +65,17 @@ namespace XTransport.Client
 			return m_root;
 		}
 
-		internal void AddIfNotExists(IClientXObjectInternal<TKind> _child, IClientXObjectInternal<TKind> _collectionOwner, int _fieldId)
+		internal void AddIfNotExists(ClientXObject<TKind> _child, ClientXObject<TKind> _collectionOwner, int _fieldId)
 		{
 			if (m_descriptors.ContainsKey(_child.Uid))
 			{
 				return;
 			}
 			var parentUid = _collectionOwner.Uid;
-			if (_child is IClientXChildObject<TKind>)
+			var child = _child as IClientXChildObject<TKind>;
+			if (child!=null)
 			{
-				((IClientXChildObject<TKind>) _child).SetParent(_collectionOwner);
+				child.SetParent(_collectionOwner);
 			}
 			_child.OnInstantiationFinished(this);
 			
@@ -96,7 +97,7 @@ namespace XTransport.Client
 			m_descriptors.Add(_child.Uid, descriptor);
 		}
 
-		internal void RemovedFromCollection(IClientXObjectInternal<TKind> _child, IClientXObjectInternal<TKind> _collectionOwner)
+		internal void RemovedFromCollection(ClientXObject<TKind> _child, ClientXObject<TKind> _collectionOwner)
 		{
 			if (_collectionOwner.Uid.Equals(m_root.Uid))
 			{
@@ -196,30 +197,30 @@ namespace XTransport.Client
 
 		protected abstract void ObjectReleased(Guid _uid, TKind _kind);
 
-		public TO Get<TO>(Guid _uid) where TO : IClientXObject<TKind>
+		public TO Get<TO>(Guid _uid) where TO : ClientXObject<TKind>
 		{
 			var descriptor = GetDescriptor(_uid);
 			var result = descriptor.Get<TO>(null);
 			return result;
 		}
 
-		internal TO Get<TO>(Guid _uid, IXObjectFactory<TKind> _factory) where TO : IClientXObject<TKind>
+		internal TO Get<TO>(Guid _uid, IXObjectFactory<TKind> _factory) where TO : ClientXObject<TKind>
 		{
 			var descriptor = GetDescriptor(_uid);
 			var result = descriptor.Get<TO>(_factory);
 			return result;
 		}
 
-		public TO GetRoot<TO>() where TO : IClientXObject<TKind>
+		public TO GetRoot<TO>() where TO : ClientXObject<TKind>
 		{
 			var descriptor = GetRootDescriptor();
 			var result = descriptor.Get<TO>(null);
 			return result;
 		}
 
-		public TO Join<TO>(TO _xObject) where TO : IClientXObject<TKind>
+		public TO Join<TO>(TO _xObject) where TO : ClientXObject<TKind>
 		{
-			((IClientXObjectInternal<TKind>) _xObject).OnInstantiationFinished(this);
+			_xObject.OnInstantiationFinished(this);
 			return _xObject;
 		}
 
@@ -275,9 +276,9 @@ namespace XTransport.Client
 			return m_descriptors[_uid].IsUndoEnabled;
 		}
 
-		public void ChildChanged(Guid _parentUid)
+		public void ClearState(Guid _parentUid)
 		{
-			GetDescriptor(_parentUid).ChildChanged();
+			GetDescriptor(_parentUid).ClearState();
 		}
 
 		private int[] m_abstractKinds = new int[0];

@@ -53,7 +53,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbstractXObject.cs" />
     <Compile Include="AbstractXReportItem.cs" />
     <Compile Include="Client\AbstractXClient.cs" />
     <Compile Include="Client\AbstractXValue.cs" />
@@ -80,7 +79,6 @@
     <Compile Include="WPF\ClientXObjectVM.cs" />
     <Compile Include="Client\IClientXChildObject.cs" />
     <Compile Include="Client\IClientXObject.cs" />
-    <Compile Include="Client\IClientXObjectInternal.cs" />
     <Compile Include="Client\IClientXObjectVM.cs" />
     <Compile Include="Client\IXClientUserInternal.cs" />
     <Compile Include="Client\IXCollection.cs" />

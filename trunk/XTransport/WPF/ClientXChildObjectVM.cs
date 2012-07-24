@@ -1,5 +1,4 @@
-﻿using System;
-using XTransport.Client;
+﻿using XTransport.Client;
 
 namespace XTransport.WPF
 {
@@ -10,14 +9,9 @@ namespace XTransport.WPF
 
 		#region IClientXChildObject<TKind> Members
 
-		void IClientXChildObject<TKind>.SetParent(IClientXObjectInternal<TKind> _xObject)
+		void IClientXChildObject<TKind>.SetParent(ClientXObject<TKind> _xObject)
 		{
 			Parent = (TParent) _xObject;
-		}
-
-		Guid IClientXChildObject<TKind>.ParentUid
-		{
-			get { return Parent.Uid; }
 		}
 
 		#endregion

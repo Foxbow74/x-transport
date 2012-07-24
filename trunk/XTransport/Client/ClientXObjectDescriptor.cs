@@ -10,7 +10,7 @@ namespace XTransport.Client
 	{
 		private readonly AbstractXClient<TKind> m_client;
 
-		private readonly Dictionary<Type, IClientXObjectInternal<TKind>> m_instances = new Dictionary<Type, IClientXObjectInternal<TKind>>();
+		private readonly Dictionary<Type, ClientXObject<TKind>> m_instances = new Dictionary<Type, ClientXObject<TKind>>();
 
 		private readonly Dictionary<IClientXObject<TKind>, int> m_instancesCounter = new Dictionary<IClientXObject<TKind>, int>();
 		private State m_currentState;
@@ -31,7 +31,7 @@ namespace XTransport.Client
 			m_client = _client;
 		}
 
-		public ClientXObjectDescriptor(IClientXObjectInternal<TKind> _clientXObjectInternal, AbstractXClient<TKind> _client, int _kindId, Guid _parentUid):this(_clientXObjectInternal.Uid, _client)
+		public ClientXObjectDescriptor(ClientXObject<TKind> _clientXObjectInternal, AbstractXClient<TKind> _client, int _kindId, Guid _parentUid):this(_clientXObjectInternal.Uid, _client)
 		{
 			SetParentUid(_parentUid);
 			AddNew(_clientXObjectInternal, _kindId);
@@ -116,7 +116,7 @@ namespace XTransport.Client
 
 		public Guid Uid { get; private set; }
 
-		public void AddNew(IClientXObjectInternal<TKind> _newborn, int _kind)
+		public void AddNew(ClientXObject<TKind> _newborn, int _kind)
 		{
 			m_instances.Add(_newborn.GetType(), _newborn);
 			m_instancesCounter.Add(_newborn, 1);
@@ -131,15 +131,15 @@ namespace XTransport.Client
 			}
 		}
 
-		public TO Get<TO>(IXObjectFactory<TKind> _factory) where TO : IClientXObject<TKind>
+		public TO Get<TO>(IXObjectFactory<TKind> _factory) where TO : ClientXObject<TKind>
 		{
-			IClientXObjectInternal<TKind> result;
+			ClientXObject<TKind> result;
 			var type = typeof(TO);
 			if (!m_instances.TryGetValue(type, out result))
 			{
 				if (_factory == null)
 				{
-					result = (IClientXObjectInternal<TKind>) Activator.CreateInstance(typeof (TO));
+					result = (ClientXObject<TKind>) Activator.CreateInstance(typeof (TO));
 					if (m_notInitialized)
 					{
 						Kind = m_client.KindToIntInternal(result.Kind);
@@ -151,9 +151,9 @@ namespace XTransport.Client
 					{
 						Kind = m_client.KindToIntInternal(_factory.Kind);
 					}
-					result = (IClientXObjectInternal<TKind>) _factory.CreateInstance(m_client.IntToKindInternal(Report.Kind));
+					result = (ClientXObject<TKind>) _factory.CreateInstance(m_client.IntToKindInternal(Report.Kind));
 					var newType = result.GetType();
-					IClientXObjectInternal<TKind> existed;
+					ClientXObject<TKind> existed;
 					if (m_instances.TryGetValue(newType, out existed))
 					{
 						m_instancesCounter[existed]++;
@@ -200,9 +200,9 @@ namespace XTransport.Client
 		{
 			m_currentState = null;
 
-			var xObject = ((IClientXObjectInternal<TKind>) _xObject);
+			var xObject = ((ClientXObject<TKind>) _xObject);
 			var changes = xObject.GetChanges().ToArray();
-			if (changes.Length == 0) return;
+
 			var xReport = new XReport(_xObject.Uid, changes, DateTime.Now, Kind);
 
 			ActualFrom = LastModified = xReport.ActualFrom;
@@ -217,7 +217,7 @@ namespace XTransport.Client
 				}
 			}
 			m_client.ClientObjectChanged(xReport);
-			OnChanged();
+			ClearState();
 		}
 
 		public void ServerObjectSaved(bool _local)
@@ -230,7 +230,7 @@ namespace XTransport.Client
 				foreach (var obj in m_instances.Values)
 				{
 					obj.SaveInternal();
-					((AbstractXObject<TKind>) obj).Stored = Report.StoredActualFrom;
+					obj.Stored = Report.StoredActualFrom;
 				}
 			}
 			else
@@ -242,7 +242,7 @@ namespace XTransport.Client
 					obj.Changed += XObjectChanged;
 				}
 			}
-			OnChanged();
+			ClearState();
 		}
 
 		public void Revert()
@@ -254,7 +254,7 @@ namespace XTransport.Client
 				obj.Revert();
 				obj.Changed += XObjectChanged;
 			}
-			OnChanged();
+			ClearState();
 		}
 
 		public void Undo(UndoXReport _xReport)
@@ -284,7 +284,7 @@ namespace XTransport.Client
 					obj.Changed += XObjectChanged;
 				}
 			}
-			OnChanged();
+			ClearState();
 		}
 
 		public void Redo(ServerXReport _report)
@@ -296,20 +296,15 @@ namespace XTransport.Client
 				obj.ApplyChanges(_report, false);
 				obj.Changed += XObjectChanged;
 			}
-			OnChanged();
+			ClearState();
 		}
 
-		public void ChildChanged()
-		{
-			OnChanged();
-		}
-
-		private void OnChanged()
+		public void ClearState()
 		{
 			m_currentState = null;
 			if (!m_parentUid.Equals(Guid.Empty))
 			{
-				m_client.ChildChanged(m_parentUid);
+				m_client.ClearState(m_parentUid);
 			}
 		}
 
@@ -345,7 +340,7 @@ namespace XTransport.Client
 
 		#endregion
 
-		public void AddedToCollection(IClientXObjectInternal<TKind> _child, IEnumerable<TKind> _alsoKnownAs)
+		public void AddedToCollection(ClientXObject<TKind> _child, IEnumerable<TKind> _alsoKnownAs)
 		{
 			foreach (var instance in m_instances.Values)
 			{
@@ -356,7 +351,7 @@ namespace XTransport.Client
 			}
 		}
 
-		public void RemovedFromCollection(IClientXObjectInternal<TKind> _child)
+		public void RemovedFromCollection(ClientXObject<TKind> _child)
 		{
 			foreach (var instance in m_instances.Values)
 			{

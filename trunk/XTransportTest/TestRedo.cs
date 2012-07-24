@@ -5,41 +5,49 @@ using XTransportTest.Client;
 namespace XTransportTest
 {
 	[TestClass]
-	public class TestGetIsRedoEnabled : AbstractTest
-	{
-		[TestMethod]
-		public void GetIsRedoEnabled0()
-		{
-			var cl = new TstClient();
-			var a = cl.GetRoot<Root>().AItems.First();
-			Wait();
-			a.Value = 10;
-			cl.Undo(a.Uid);
-			Assert.AreEqual(true, cl.GetIsRedoEnabled(a.Uid));
-			cl.Redo(a.Uid);
-			Assert.AreEqual(false, cl.GetIsRedoEnabled(a.Uid));
-		}
-	}
-
-	[TestClass]
 	public class TestRedo : AbstractTest
 	{
 		[TestMethod]
-		public void Redo()
+		public void Redo1()
 		{
 			var cl = new TstClient();
 			var a = cl.GetRoot<Root>().AItems.First();
+			var init = a.Value;
 			Wait();
 			a.Value = 10;
 			Wait();
 			a.Value = 20;
 			Wait();
 			cl.Undo(a.Uid);
+			Assert.AreEqual(10, a.Value);
 			cl.Undo(a.Uid);
+			Assert.AreEqual(init, a.Value);
 			cl.Redo(a.Uid);
 			Assert.AreEqual(10, a.Value);
 			cl.Redo(a.Uid);
 			Assert.AreEqual(20, a.Value);
+		}
+
+		[TestMethod]
+		public void Redo2()
+		{
+			var cl = new TstClient();
+			var a = cl.GetRoot<Root>().AItems.First();
+			var init = a.Value;
+			Wait();
+			a.Value = 10;
+			Wait();
+			a.Value = init;
+			Wait();
+			cl.Undo(a.Uid);
+			Wait();
+			Assert.AreEqual(10, a.Value);
+			cl.Undo(a.Uid);
+			Assert.AreEqual(init, a.Value);
+			cl.Redo(a.Uid);
+			Assert.AreEqual(10, a.Value);
+			cl.Redo(a.Uid);
+			Assert.AreEqual(init, a.Value);
 		}
 
 		[TestMethod]
