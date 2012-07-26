@@ -33,7 +33,7 @@ namespace XTransport.Client
 
 		internal void ClientObjectChanged(XReport _xReport)
 		{
-			if (_xReport.Uid == GetRootDescriptor().Uid)
+			if (_xReport.Uid == RootDescriptor.Uid)
 			{
 				var toDel = _xReport.Items.Where(_item => m_abstractKinds.Contains(_item.FieldId)).ToArray();
 				foreach (var item in toDel)
@@ -47,66 +47,35 @@ namespace XTransport.Client
 		internal ClientXObjectDescriptor<TKind> GetDescriptor(Guid _uid)
 		{
 			ClientXObjectDescriptor<TKind> descriptor;
-			if (!m_descriptors.TryGetValue(_uid, out descriptor))
+			if (m_descriptors.TryGetValue(_uid, out descriptor))
 			{
-				descriptor = new ClientXObjectDescriptor<TKind>(_uid, this);
-				m_descriptors.Add(_uid, descriptor);
+				return descriptor;
 			}
-			return descriptor;
+			throw new ApplicationException();
 		}
 
-		internal ClientXObjectDescriptor<TKind> GetRootDescriptor()
+		internal ClientXObjectDescriptor<TKind> RootDescriptor
 		{
-			if (m_root == null)
+			get
 			{
-				var uid = m_transport.GetRootUid();
-				var descriptor = new ClientXObjectDescriptor<TKind>(uid, this);
-				m_descriptors.Add(uid, descriptor);
-				m_root = descriptor;
+				if (m_root == null)
+				{
+					var uid = m_transport.GetRootUid();
+					var descriptor = new ClientXObjectDescriptor<TKind>(uid, this, default(Guid));
+					m_descriptors.Add(uid, descriptor);
+					m_root = descriptor;
+				}
+				return m_root;
 			}
-			return m_root;
 		}
 
-		internal void AddIfNotExists(ClientXObject<TKind> _child, ClientXObject<TKind> _collectionOwner, int _fieldId)
+		internal void DeleteObject(ClientXObject<TKind> _child, Guid _collectionOwnerUid)
 		{
-			if (m_descriptors.ContainsKey(_child.Uid))
-			{
-				return;
-			}
-			var parentUid = _collectionOwner.Uid;
-			var child = _child as IClientXChildObject<TKind>;
-			if (child != null)
-			{
-				child.SetParent(_collectionOwner);
-			}
-			_child.OnInstantiationFinished(this);
-
-			var kindId = KindToInt(_child.Kind);
-			var report = new XReport(_child.Uid, _child.GetChanges(), DateTime.Now, kindId);
-
-			m_transport.AddNew(report, m_sessionId, _collectionOwner.Uid);
-
-			if (_collectionOwner.Uid.Equals(m_root.Uid))
-			{
-				var alsoKnownAs = new List<TKind>(m_abstractRootKindMap[_child.Kind]) {_child.Kind};
-				m_root.AddedToCollection(_child, alsoKnownAs);
-			}
-			else
-			{
-				_collectionOwner.AddedToCollection(_child, _fieldId);
-			}
-			var descriptor = new ClientXObjectDescriptor<TKind>(_child, this, kindId, parentUid);
-			m_descriptors.Add(_child.Uid, descriptor);
-		}
-
-		internal void RemovedFromCollection(ClientXObject<TKind> _child, ClientXObject<TKind> _collectionOwner)
-		{
-			if (_collectionOwner.Uid.Equals(m_root.Uid))
+			if (_collectionOwnerUid.Equals(m_root.Uid))
 			{
 				m_root.RemovedFromCollection(_child);
 			}
 			Release(_child);
-			RefDeleted(_child);
 		}
 
 		internal int KindToIntInternal(TKind _kind)
@@ -131,7 +100,7 @@ namespace XTransport.Client
 		internal ServerXReport GetReport(int _kind, Guid _uid)
 		{
 			var report = m_transport.GetReport(_kind, _uid, m_sessionId);
-			if (report.Uid == GetRootDescriptor().Uid)
+			if (report.Uid == RootDescriptor.Uid)
 			{
 				#region add aggregated lists
 
@@ -187,34 +156,79 @@ namespace XTransport.Client
 			descriptor.Release(_object);
 			if (descriptor.IsEmpty)
 			{
-				RefDeleted(_object);
+				ObjectReleased(_object.Uid, _object.Kind);
 			}
-		}
-
-		internal void RefDeleted(IClientXObject<TKind> _object)
-		{
-			ObjectReleased(_object.Uid, _object.Kind);
 		}
 
 		protected abstract void ObjectReleased(Guid _uid, TKind _kind);
 
 		public TO Get<TO>(Guid _uid) where TO : ClientXObject<TKind>
 		{
-			var descriptor = GetDescriptor(_uid);
+			ClientXObjectDescriptor<TKind> descriptor;
+			if(m_descriptors.TryGetValue(_uid, out descriptor))
+			{
+				return descriptor.Get<TO>(null);
+			}
+			Guid collectionOwnerUid = m_transport.GetСollectionOwnerUid(_uid);
+			descriptor = new ClientXObjectDescriptor<TKind>(_uid, this, collectionOwnerUid);
+			m_descriptors.Add(_uid, descriptor);
 			var result = descriptor.Get<TO>(null);
 			return result;
 		}
 
-		internal TO Get<TO>(Guid _uid, IXObjectFactory<TKind> _factory) where TO : ClientXObject<TKind>
+		internal TO GetInternal<TO>(Guid _uid, IXObjectFactory<TKind> _factory, Guid _collectionOwnerUid) where TO : ClientXObject<TKind>
 		{
-			var descriptor = GetDescriptor(_uid);
-			var result = descriptor.Get<TO>(_factory);
+			ClientXObjectDescriptor<TKind> descriptor;
+			TO result;
+			if (!m_descriptors.TryGetValue(_uid, out descriptor))
+			{
+				descriptor = new ClientXObjectDescriptor<TKind>(_uid, this, _collectionOwnerUid);
+				m_descriptors.Add(_uid, descriptor);
+				result = descriptor.Get<TO>(_factory);
+			}
+			else
+			{
+				if (!descriptor.ContainsInstanceOf(out result))
+				{
+					result = descriptor.Get<TO>(_factory);
+				}
+			}
 			return result;
+		}
+
+		internal void RegisterNewItem(ClientXObject<TKind> _child, Guid _collectionOwnerUid, int _fieldId)
+		{
+			if (m_descriptors.ContainsKey(_child.Uid))
+			{
+				throw new ApplicationException("Object is not unique");
+			}
+
+			var kindId = KindToInt(_child.Kind);
+			var report = new XReport(_child.Uid, _child.GetChanges(), DateTime.Now, kindId);
+
+			m_transport.AddNew(report, m_sessionId, _collectionOwnerUid);
+
+			var descriptor = new ClientXObjectDescriptor<TKind>(_child, this, kindId, _collectionOwnerUid);
+			m_descriptors.Add(_child.Uid, descriptor);
+
+			var ownerDescriptor = GetDescriptor(_collectionOwnerUid);
+
+			List<TKind> alsoKnownAsList;
+			if (ownerDescriptor == RootDescriptor && m_abstractRootKindMap.TryGetValue(_child.Kind, out alsoKnownAsList))
+			{
+				var alsoKnownAs = new List<TKind>(alsoKnownAsList) { _child.Kind };
+				ownerDescriptor.AddedToCollection(_child, alsoKnownAs.Select(KindToInt));
+			}
+			else
+			{
+				ownerDescriptor.AddedToCollection(_child, new[] { _fieldId });
+			}
+			_child.OnInstantiationFinished(this);
 		}
 
 		public TO GetRoot<TO>() where TO : ClientXObject<TKind>
 		{
-			var descriptor = GetRootDescriptor();
+			var descriptor = RootDescriptor;
 			var result = descriptor.Get<TO>(null);
 			return result;
 		}
@@ -264,17 +278,33 @@ namespace XTransport.Client
 
 		public bool GetIsRevertEnabled(Guid _uid)
 		{
-			return m_descriptors[_uid].IsRevertEnabled;
+			ClientXObjectDescriptor<TKind> descriptor;
+			if (m_descriptors.TryGetValue(_uid, out descriptor))
+			{
+				return descriptor.IsRevertEnabled;
+			}
+			return false;
+
 		}
 
 		public bool GetIsRedoEnabled(Guid _uid)
 		{
-			return m_descriptors[_uid].IsRedoEnabled;
+			ClientXObjectDescriptor<TKind> descriptor;
+			if (m_descriptors.TryGetValue(_uid, out descriptor))
+			{
+				return descriptor.IsRedoEnabled;
+			}
+			return false;
 		}
 
 		public bool GetIsUndoEnabled(Guid _uid)
 		{
-			return m_descriptors[_uid].IsUndoEnabled;
+			ClientXObjectDescriptor<TKind> descriptor;
+			if (m_descriptors.TryGetValue(_uid, out descriptor))
+			{
+				return descriptor.IsUndoEnabled;
+			}
+			return false;
 		}
 
 		public void ClearState(Guid _parentUid)

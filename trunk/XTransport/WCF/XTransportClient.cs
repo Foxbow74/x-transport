@@ -102,6 +102,11 @@ namespace XTransport.WCF
 			return ServiceContract.GetRootUid();
 		}
 
+		public Guid GetСollectionOwnerUid(Guid _uid)
+		{
+			return ServiceContract.GetСollectionOwnerUid(_uid);
+		}
+
 		#endregion
 
 		private void OnServerObjectSaved(int _kind, Guid _uid, SessionId _sessionId)

@@ -55,6 +55,18 @@ namespace XTransport
 			CreateTablesIfNotExists();
 		}
 
+		private void CreateTablesIfNotExists()
+		{
+			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS main ( id INTEGER PRIMARY KEY AUTOINCREMENT, uid GUID, parent GUID, kind INTEGER, field INTEGER, vfrom DATETIME NOT NULL, vtill DATETIME)");
+
+			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS ints ( id INTEGER NOT NULL, value INTEGER)");
+			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS guids ( id INTEGER NOT NULL, value GUID)");
+			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS dates ( id INTEGER NOT NULL, value DATETIME)");
+			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS strings ( id INTEGER NOT NULL, value TEXT)");
+			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS doubles ( id INTEGER NOT NULL, value REAL)");
+			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS decimals ( id INTEGER NOT NULL, value TEXT)");
+			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS blobs ( id INTEGER NOT NULL, value BLOB)");
+		}
 		#region IStorage Members
 
 		public void Dispose()
@@ -279,20 +291,6 @@ namespace XTransport
 			m_transaction.Rollback();
 			m_transaction.Dispose();
 			m_transaction = null;
-		}
-
-		private void CreateTablesIfNotExists()
-		{
-			ExecuteNonQuery(
-				"CREATE TABLE IF NOT EXISTS main ( id INTEGER PRIMARY KEY AUTOINCREMENT, uid GUID, parent GUID, kind INTEGER, field INTEGER, vfrom DATETIME NOT NULL, vtill DATETIME)");
-
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS ints ( id INTEGER NOT NULL, value INTEGER)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS guids ( id INTEGER NOT NULL, value GUID)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS dates ( id INTEGER NOT NULL, value DATETIME)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS strings ( id INTEGER NOT NULL, value TEXT)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS doubles ( id INTEGER NOT NULL, value REAL)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS decimals ( id INTEGER NOT NULL, value TEXT)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS blobs ( id INTEGER NOT NULL, value BLOB)");
 		}
 
 		private int InsertValueInternal<T>(int? _lastId, Guid _uid, int _field, string _tbl, T _value)

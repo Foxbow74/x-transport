@@ -40,5 +40,8 @@ namespace XTransport.WCF
 
 		[OperationContract]
 		Guid GetRootUid();
+
+		[OperationContract]
+		Guid GetСollectionOwnerUid(Guid _uid);
 	}
 }

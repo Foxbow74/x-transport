@@ -92,6 +92,11 @@ namespace XTransport.WCF
 			return Implementation.GetRootUid();
 		}
 
+		public Guid GetСollectionOwnerUid(Guid _uid)
+		{
+			return Implementation.GetСollectionOwnerUid(_uid);
+		}
+
 		#endregion
 
 		public static void InitTransportHost()

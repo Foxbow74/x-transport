@@ -8,8 +8,7 @@ namespace XTransport.Server
 	[DataContract]
 	internal class UndoXReport : ServerXReport
 	{
-		public UndoXReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, DateTime _actualFrom,
-		                   DateTime _lastModification, DateTime _storedActualFrom, int _kind)
+		public UndoXReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, DateTime _actualFrom, DateTime _lastModification, DateTime _storedActualFrom, int _kind) 
 			: base(_uid, _items, _actualFrom, _lastModification, _storedActualFrom, _kind)
 		{
 			NeedRevert = false;
@@ -29,9 +28,7 @@ namespace XTransport.Server
 	[KnownType("GetKnownType")]
 	internal class ServerXReport : XReport
 	{
-		public ServerXReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, DateTime _actualFrom,
-		                     DateTime _lastModification, DateTime _storedActualFrom, int _kind)
-			: base(_uid, _items, _actualFrom, _kind)
+		public ServerXReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, DateTime _actualFrom, DateTime _lastModification, DateTime _storedActualFrom, int _kind) : base(_uid, _items, _actualFrom, _kind)
 		{
 			LastModification = _lastModification;
 			StoredActualFrom = _storedActualFrom;

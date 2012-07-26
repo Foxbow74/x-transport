@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace XTransport.Client
 {
-	public abstract class ClientXObject<TKind> : IClientXObject<TKind> //, IClientXObjectInternal<TKind>
+	public abstract class ClientXObject<TKind> : IClientXObject<TKind>
 	{
 		private readonly Dictionary<int, IXValueInternal> m_xValues = new Dictionary<int, IXValueInternal>();
 		private int m_batchChanges;
@@ -32,18 +32,39 @@ namespace XTransport.Client
 				{
 					xfield = (IXValueInternal) info.Constructor.Invoke(new object[] {info.Factory,});
 				}
-				var xlist = xfield as IXCollection<TKind>;
-				if (xlist != null)
-				{
-					xlist.SetOwnerInfo(this, info.FieldId);
-				}
 				info.Field.SetValue(this, xfield);
 				m_xValues.Add(info.FieldId, xfield);
 			}
 			SubscribePersistedValuesChanges();
 		}
 
-		public DateTime Stored { get; internal set; }
+		internal void OnInstantiationFinished(AbstractXClient<TKind> _client)
+		{
+			if (this is IXClientUserInternal<TKind>)
+			{
+				((IXClientUserInternal<TKind>)this).SetClient(_client);
+			}
+
+			foreach (var pair in m_xValues)
+			{
+				var collection = pair.Value as IXCollection<TKind>;
+				if (collection != null)
+				{
+					collection.SetOwnerInfo(Uid, pair.Key);
+				}
+				var clientUser = pair.Value as IXClientUserInternal<TKind>;
+				if (clientUser != null)
+				{
+					clientUser.SetClient(_client);
+				}
+			}
+
+			InstantiationFinished();
+		}
+
+		protected virtual void InstantiationFinished()
+		{
+		}
 
 		#region IClientXObject<TKind> Members
 
@@ -155,21 +176,6 @@ namespace XTransport.Client
 
 		#endregion
 
-		internal void OnInstantiationFinished(AbstractXClient<TKind> _client)
-		{
-			if (this is IXClientUserInternal<TKind>)
-			{
-				((IXClientUserInternal<TKind>) this).SetClient(_client);
-			}
-
-			foreach (var clientUser in m_xValues.Values.OfType<IXClientUserInternal<TKind>>())
-			{
-				clientUser.SetClient(_client);
-			}
-
-			InstantiationFinished();
-		}
-
 		internal IEnumerable<AbstractXReportItem> GetChanges()
 		{
 			return
@@ -218,7 +224,6 @@ namespace XTransport.Client
 		{
 			if (_firstTime)
 			{
-				Stored = _report.ActualFrom;
 				UnsubscribePersistedValuesChanges();
 			}
 			var done = new List<IXValueInternal>();
@@ -258,10 +263,6 @@ namespace XTransport.Client
 				value.Save();
 			}
 			IsDirty = false;
-		}
-
-		protected virtual void InstantiationFinished()
-		{
 		}
 
 		private void SubscribePersistedValuesChanges()

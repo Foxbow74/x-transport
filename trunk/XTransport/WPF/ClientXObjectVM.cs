@@ -32,8 +32,11 @@ namespace XTransport.WPF
 
 		#region IXClientUserInternal<TKind> Members
 
+		protected internal AbstractXClient<TKind> Client { get; private set; }
+
 		void IXClientUserInternal<TKind>.SetClient(AbstractXClient<TKind> _client)
 		{
+			Client = _client;
 			m_uiDispatcher = (_client).GetUiDispatcherInternal();
 		}
 
