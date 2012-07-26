@@ -91,7 +91,7 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var parent = cl.GetRoot<RootVM>().ParentItems.First();
 
-			Wait(1000, () => parent.List.Count != parent.ObsCol.Count);
+			Wait(100, () => parent.List.Count != parent.ObsCol.Count);
 			foreach (var vm in parent.List)
 			{
 				Assert.AreEqual(true, parent.ObsCol.Contains(vm));
@@ -112,7 +112,7 @@ namespace XTransportTest
 			                             		mre.Set();
 			                             	});
 			Assert.AreEqual(true, mre.WaitOne(100));
-			Wait(1000, () => parentM.List.Count != parent.ObsCol.Count);
+			Wait(100, () => parentM.List.Count != parent.ObsCol.Count);
 			foreach (var vm in parent.List)
 			{
 				Assert.AreEqual(true, parent.ObsCol.Contains(vm));
@@ -139,7 +139,7 @@ namespace XTransportTest
 			Wait(100);
 			cl1.Revert(parentVM1.Uid);
 
-			Wait(1000, () => parentVM2.List.Count != parentVM1.ObsCol.Count);
+			Wait(100, () => parentVM2.List.Count != parentVM1.ObsCol.Count);
 
 			Assert.AreEqual(parentVM2.List.Count, parentVM1.ObsCol.Count);
 			foreach (var vm in parentVM1.List)
