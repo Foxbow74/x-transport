@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -18,7 +19,7 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var a = cl.GetRoot<Root>().AItems.First();
 			a.Value = 10;
-			var report = new XReport(a.Uid, a.GetChanges(), a.Stored, (int) a.Kind);
+			var report = new XReport(a.Uid, a.GetChanges(), DateTime.Now, (int) a.Kind);
 
 			var ser = new DataContractSerializer(typeof (XReport)
 				//, new Type[] { typeof(XReportItem<Int32>)}

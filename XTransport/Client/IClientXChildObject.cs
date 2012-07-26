@@ -1,7 +1,9 @@
-﻿namespace XTransport.Client
+﻿using System;
+
+namespace XTransport.Client
 {
 	internal interface IClientXChildObject<TKind>
 	{
-		void SetParent(ClientXObject<TKind> _xObject);
+		void SetParent(Guid _collectionOwner);
 	}
 }

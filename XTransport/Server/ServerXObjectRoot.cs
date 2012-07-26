@@ -12,7 +12,7 @@ namespace XTransport.Server
 		{
 		}
 
-		public void Add(int _kind, Guid _xObjectUid, AbstractXServer _abstractXServer)
+		public void Add(int _kind, Guid _xObjectUid)
 		{
 			RegisterObject(_kind, _xObjectUid);
 		}

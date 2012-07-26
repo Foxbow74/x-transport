@@ -4,6 +4,9 @@ namespace XTransportTest.Client
 {
 	internal class A : XObject
 	{
+		public A()
+		{ }
+
 		[X("IVAL")] private IXValue<int> m_value;
 
 		public override ETestKind Kind

@@ -7,8 +7,6 @@ using XTransport.WCF;
 
 namespace XTransport.Server
 {
-	internal delegate void ServerObjectSaved(int _kind, Guid _uid, SessionId _sessionId);
-
 	public abstract class AbstractXServer
 	{
 		internal static AbstractXServer Instance;
@@ -94,6 +92,7 @@ namespace XTransport.Server
 						{
 							var rt = (StorageChild) record;
 							_xObject.AddChildren(rt.Field, rt.Uid);
+							m_parents[rt.Uid] = _xObject.Uid;
 						}
 						else if (record is IStorageValueInternal)
 						{
@@ -183,12 +182,15 @@ namespace XTransport.Server
 				foreach (var record in st.LoadRoot())
 				{
 					var rt = record;
-					root.Add(rt.Kind, rt.Uid, this);
+					root.Add(rt.Kind, rt.Uid);
+					m_parents[rt.Uid] = root.Uid;
 				}
 			}
 			m_objects.Add(root.Uid, root);
 			return root;
 		}
+
+		Dictionary<Guid, Guid> m_parents = new Dictionary<Guid, Guid>();
 
 		protected abstract IStorage CreateStorage();
 
@@ -223,7 +225,7 @@ namespace XTransport.Server
 			}
 			var saved = obj.Save(_sessionId, _st, _now, this);
 			saved = obj.SaveChildren(this, _sessionId, _st, _now) | saved;
-			if (saved)
+			//if (saved)
 			{
 				OnServerObjectSaved(_uid, _sessionId);
 			}
@@ -311,6 +313,7 @@ namespace XTransport.Server
 						{
 							var chd = (StorageChild) record;
 							m_objects[chd.Parent].AddChildren(chd.Field, chd.Uid);
+							m_parents[chd.Uid] = chd.Parent;
 						}
 					}
 					else if (record is IStorageValueInternal)
@@ -329,6 +332,11 @@ namespace XTransport.Server
 		internal void Delete(IStorage _storage, Guid _uid, int _field, DateTime _now)
 		{
 			_storage.Delete(_uid, _field, _now);
+		}
+
+		public Guid GetСollectionOwnerUid(Guid _uid)
+		{
+			return m_parents[_uid];
 		}
 	}
 }

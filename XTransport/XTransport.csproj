@@ -57,6 +57,7 @@
     <Compile Include="Client\AbstractXClient.cs" />
     <Compile Include="Client\AbstractXValue.cs" />
     <Compile Include="Client\ClientXChildObject.cs" />
+    <Compile Include="Server\ServerObjectSaved.cs" />
     <Compile Include="Server\ServerXObjectContainer.cs" />
     <Compile Include="Server\ServerXObjectRoot.cs" />
     <Compile Include="Server\Storage\IStorage.cs" />

@@ -11,7 +11,8 @@ namespace XTransportTest
 		public void CheckParent()
 		{
 			var cl = new TstClient();
-			var pr = cl.GetRoot<Root>().ParentItems.First();
+			var root = cl.GetRoot<Root>();
+			var pr = root.ParentItems.First();
 			var child = pr.Children.First();
 			Assert.AreNotEqual(null, child);
 			Assert.AreEqual(pr, child.Parent);

@@ -12,32 +12,47 @@ namespace XTransport.Client
 
 		private readonly Dictionary<Type, ClientXObject<TKind>> m_instances = new Dictionary<Type, ClientXObject<TKind>>();
 
-		private readonly Dictionary<IClientXObject<TKind>, int> m_instancesCounter =
-			new Dictionary<IClientXObject<TKind>, int>();
+		private readonly Dictionary<IClientXObject<TKind>, int> m_instancesCounter = new Dictionary<IClientXObject<TKind>, int>();
 
 		private State m_currentState;
 
 		private int m_kind;
 		private bool m_notInitialized = true;
-		private Guid m_parentUid;
+		private Guid m_collectionOwnerUid;
 		private ServerXReport m_report;
 
-		public ClientXObjectDescriptor(Guid _uid, AbstractXClient<TKind> _client)
+		public ClientXObjectDescriptor(Guid _uid, AbstractXClient<TKind> _client, Guid _collectionOwnerUid)
 		{
+#if DEBUG
 			if (_uid == Guid.Empty)
 			{
 				throw new NotImplementedException("??? why");
 			}
-
+#endif
+			m_collectionOwnerUid = _collectionOwnerUid;
 			Uid = _uid;
 			m_client = _client;
 		}
 
-		public ClientXObjectDescriptor(ClientXObject<TKind> _clientXObjectInternal, AbstractXClient<TKind> _client,
-		                               int _kindId, Guid _parentUid) : this(_clientXObjectInternal.Uid, _client)
+		public ClientXObjectDescriptor(ClientXObject<TKind> _newBorn, AbstractXClient<TKind> _client, int _kindId, Guid _parentUid)
+			: this(_newBorn.Uid, _client, _parentUid)
 		{
-			SetParentUid(_parentUid);
-			AddNew(_clientXObjectInternal, _kindId);
+			var child = _newBorn as IClientXChildObject<TKind>;
+			if (child != null)
+			{
+				child.SetParent(_parentUid);
+			}
+			m_instances.Add(_newBorn.GetType(), _newBorn);
+			m_instancesCounter.Add(_newBorn, 1);
+			Kind = _kindId;
+			var now = DateTime.Now;
+			_newBorn.Changed += XObjectChanged;
+			var changes = _newBorn.GetChanges();
+			if (changes.Any())
+			{
+				Report = new ServerXReport(_newBorn.Uid, _newBorn.GetChanges(), now, now, DateTime.MinValue,
+										   m_client.KindToIntInternal(_newBorn.Kind));
+			}
 		}
 
 		public DateTime ActualFrom { get; set; }
@@ -119,20 +134,18 @@ namespace XTransport.Client
 
 		public Guid Uid { get; private set; }
 
-		public void AddNew(ClientXObject<TKind> _newborn, int _kind)
+		public bool ContainsInstanceOf<TO>(out TO _result) where TO : ClientXObject<TKind>
 		{
-			m_instances.Add(_newborn.GetType(), _newborn);
-			m_instancesCounter.Add(_newborn, 1);
-			Kind = _kind;
-			var now = DateTime.Now;
-			_newborn.Changed += XObjectChanged;
-			var changes = _newborn.GetChanges();
-			if (changes.Any())
+			ClientXObject<TKind> value;
+			if(m_instances.TryGetValue(typeof (TO), out value))
 			{
-				Report = new ServerXReport(_newborn.Uid, _newborn.GetChanges(), now, now, DateTime.MinValue,
-				                           m_client.KindToIntInternal(_newborn.Kind));
+				_result = (TO) value;
+				return true;
 			}
+			_result = null;
+			return false;
 		}
+
 
 		public TO Get<TO>(IXObjectFactory<TKind> _factory) where TO : ClientXObject<TKind>
 		{
@@ -142,6 +155,11 @@ namespace XTransport.Client
 			{
 				if (_factory == null)
 				{
+					if (type.IsAbstract)
+					{
+						throw new ApplicationException("Can't instantiate abstract type, please init _factory arg");
+					}
+
 					result = (ClientXObject<TKind>) Activator.CreateInstance(typeof (TO));
 					if (m_notInitialized)
 					{
@@ -164,6 +182,11 @@ namespace XTransport.Client
 					}
 					m_instances.Add(type, result);
 					type = newType;
+				}
+				var child = result as IClientXChildObject<TKind>;
+				if(child!=null)
+				{
+					child.SetParent(m_collectionOwnerUid);
 				}
 				result.SetUid(Report.Uid);
 				result.OnInstantiationFinished(m_client);
@@ -233,7 +256,6 @@ namespace XTransport.Client
 				foreach (var obj in m_instances.Values)
 				{
 					obj.SaveInternal();
-					obj.Stored = Report.StoredActualFrom;
 				}
 			}
 			else
@@ -305,24 +327,19 @@ namespace XTransport.Client
 		public void ClearState()
 		{
 			m_currentState = null;
-			if (!m_parentUid.Equals(Guid.Empty))
+			if (!m_collectionOwnerUid.Equals(Guid.Empty))
 			{
-				m_client.ClearState(m_parentUid);
+				m_client.ClearState(m_collectionOwnerUid);
 			}
 		}
 
-		public void SetParentUid(Guid _parentUid)
-		{
-			m_parentUid = _parentUid;
-		}
-
-		public void AddedToCollection(ClientXObject<TKind> _child, IEnumerable<TKind> _alsoKnownAs)
+		public void AddedToCollection(ClientXObject<TKind> _child, IEnumerable<int> _addAs)
 		{
 			foreach (var instance in m_instances.Values)
 			{
-				foreach (var alsoKnownAs in _alsoKnownAs)
+				foreach (var addAs in _addAs)
 				{
-					instance.AddedToCollection(_child, m_client.KindToIntInternal(alsoKnownAs));
+					instance.AddedToCollection(_child, addAs);
 				}
 			}
 		}
