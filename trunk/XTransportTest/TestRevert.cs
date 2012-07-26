@@ -12,7 +12,6 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 			var a = cl.GetRoot<Root>().AItems.First();
-			Wait();
 			a.Value = 10;
 			Assert.AreEqual(true, cl.GetIsRevertEnabled(a.Uid));
 		}
@@ -22,7 +21,6 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 			var a = cl.GetRoot<Root>().AItems.First();
-			Wait();
 			a.Value = 10;
 			cl.Revert(a.Uid);
 			Assert.AreEqual(false, cl.GetIsRevertEnabled(a.Uid));
@@ -33,7 +31,6 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 			var a = cl.GetRoot<Root>().AItems.First();
-			Wait();
 			a.Value = 10;
 			a.Value = 20;
 			cl.Revert(a.Uid);

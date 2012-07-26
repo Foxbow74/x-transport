@@ -48,7 +48,6 @@ namespace XTransportTest
 			var waitCounter = 10;
 			while (general.AItems.Count != generalMirror.AItems.Count && waitCounter-- > 0)
 			{
-				Wait();
 			}
 			Assert.AreEqual(general.AItems.Count, generalMirror.AItems.Count);
 			foreach (var a in general.AItems)

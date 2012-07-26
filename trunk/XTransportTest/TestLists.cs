@@ -43,7 +43,6 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 			var pr = cl.GetRoot<Root>().ParentItems.First();
-			Wait();
 			var clientSideChild = new Child {Value = 3.0};
 			pr.Children.Add(clientSideChild);
 			cl.Undo(pr.Uid);
@@ -56,7 +55,6 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var pr = cl.GetRoot<Root>().ParentItems.First();
 			var child = new Child {Value = 3.0};
-			Wait();
 			var cnt = pr.Children.Count;
 			pr.Children.Add(child);
 			cl.Undo(pr.Uid);

@@ -12,7 +12,6 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 			var a = cl.GetRoot<Root>().AItems.First();
-			Wait();
 			a.Value = 10;
 			cl.Undo(a.Uid);
 			Assert.AreEqual(true, cl.GetIsRedoEnabled(a.Uid));

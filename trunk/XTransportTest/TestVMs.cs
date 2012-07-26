@@ -32,7 +32,6 @@ namespace XTransportTest
 			                       	};
 			ThreadPool.QueueUserWorkItem(_state =>
 			                             	{
-			                             		Wait();
 			                             		avm.Value = Int32.MinValue;
 			                             	});
 			Assert.AreEqual(true, mre.WaitOne(100));
@@ -54,7 +53,6 @@ namespace XTransportTest
 			                       	};
 			ThreadPool.QueueUserWorkItem(_state =>
 			                             	{
-			                             		Wait();
 			                             		aMirrorVM.Value = Int32.MaxValue;
 			                             	});
 
@@ -79,7 +77,6 @@ namespace XTransportTest
 			client.Save(avm.Uid);
 			ThreadPool.QueueUserWorkItem(_state =>
 			                             	{
-			                             		Wait();
 			                             		clVM.Revert(avm.Uid);
 			                             	});
 			Assert.AreEqual(true, mre.WaitOne(1000));
@@ -107,7 +104,6 @@ namespace XTransportTest
 			var mre = new ManualResetEvent(false);
 			ThreadPool.QueueUserWorkItem(_state =>
 			                             	{
-			                             		Wait();
 			                             		parentM.List.Remove(parentM.List.First());
 			                             		mre.Set();
 			                             	});
@@ -130,7 +126,6 @@ namespace XTransportTest
 			var mre = new ManualResetEvent(false);
 			ThreadPool.QueueUserWorkItem(_state =>
 			                             	{
-			                             		Wait();
 			                             		parentVM2.List.Remove(parentVM2.List.First());
 			                             		cl2.Save(parentVM1.Uid);
 			                             		mre.Set();
