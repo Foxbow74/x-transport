@@ -13,7 +13,7 @@ namespace ClientModulePositionsEditor.VMs
 		protected override void InstantiationFinished()
 		{
 			base.InstantiationFinished();
-			LinkProperty(m_derivative,()=>Name);
+			BindProperty(m_derivative,()=>Name);
 		}
 
 		public override EAlphaKind Kind

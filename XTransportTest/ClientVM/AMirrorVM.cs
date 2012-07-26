@@ -20,7 +20,7 @@ namespace XTransportTest.ClientVM
 
 		protected override void InstantiationFinished()
 		{
-			LinkProperty(m_value, () => Value);
+			BindProperty(m_value, () => Value);
 		}
 	}
 }

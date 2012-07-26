@@ -16,8 +16,8 @@ namespace ClientModulePortfolioEditor.VMs
 		protected override void InstantiationFinished()
 		{
 			base.InstantiationFinished();
-			LinkProperty(m_notionalAmount, () => NotionalAmount);
-			LinkProperty(m_baseCurrency, () => BaseCurrency);
+			BindProperty(m_notionalAmount, () => NotionalAmount);
+			BindProperty(m_baseCurrency, () => BaseCurrency);
 
 			CurrencyVMs = AlphaClient.Instance.GetRoot<GeneralVM>().CurrencyVMs;
 		}

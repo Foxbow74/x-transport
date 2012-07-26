@@ -189,11 +189,12 @@ namespace XTransport.Client
 					child.SetParent(m_collectionOwnerUid);
 				}
 				result.SetUid(Report.Uid);
-				result.OnInstantiationFinished(m_client);
+				result.SetClientInternal(m_client);
 				result.ApplyChanges(Report, true);
 				result.Changed += XObjectChanged;
 				m_instances.Add(type, result);
 				m_instancesCounter.Add(result, 1);
+				result.OnInstantiationFinished();
 			}
 			else
 			{

@@ -10,9 +10,9 @@ namespace AlphaStudioCore
 		protected override void InstantiationFinished()
 		{
 			base.InstantiationFinished();
-			LinkProperty(m_name, () => Name);
-			LinkProperty(m_name, () => NameForSort);
-			LinkProperty(m_name, () => DocumentTitle);
+			BindProperty(m_name, () => Name);
+			BindProperty(m_name, () => NameForSort);
+			BindProperty(m_name, () => DocumentTitle);
 		}
 
 		public virtual string Name
