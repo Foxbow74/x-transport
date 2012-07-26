@@ -58,7 +58,7 @@ namespace XTransport.WPF
 			handler(this, new PropertyChangedEventArgs(expression.Member.Name));
 		}
 
-		protected void LinkProperty<TF, TP>(IXValue<TF> _field, Expression<Func<TP>> _property)
+		protected void BindProperty<TF, TP>(IXValue<TF> _field, Expression<Func<TP>> _property)
 		{
 			var expression = (MemberExpression) _property.Body;
 			List<PropertyChangedEventArgs> list;
@@ -72,7 +72,7 @@ namespace XTransport.WPF
 			list.Add(new PropertyChangedEventArgs(name));
 		}
 
-		protected void LinkHandler<TF>(IXValue<TF> _field, Action _handler)
+		protected void SubscribeHandler<TF>(IXValue<TF> _field, Action _handler)
 		{
 			m_actions.Add((IXValueInternal) _field, _handler);
 		}
@@ -194,64 +194,6 @@ namespace XTransport.WPF
 		protected virtual bool ThrowOnInvalidPropertyName { get; private set; }
 
 #endif
-
-		#endregion
-
-		#region Subscriprtion
-
-//        private readonly Dictionary<INotifyPropertyChanged, List<Tuple<string, Action<INotifyPropertyChanged>>>> m_subscribers
-//            = new Dictionary<INotifyPropertyChanged, List<Tuple<string, Action<INotifyPropertyChanged>>>>();
-
-//        protected void Subscribe<TNotifier, T>(TNotifier _notifier, Expression<Func<T>> _property,
-//                                               Action<INotifyPropertyChanged> _handler)
-//            where TNotifier : INotifyPropertyChanged
-//        {
-//            var expression = (MemberExpression) _property.Body;
-//            var name = expression.Member.Name;
-//#if DEBUG
-//            VerifyPropertyName(_notifier, name);
-//#endif
-//            var tuple = new Tuple<string, Action<INotifyPropertyChanged>>(name, _handler);
-//            List<Tuple<string, Action<INotifyPropertyChanged>>> list;
-//            if (!m_subscribers.TryGetValue(_notifier, out list))
-//            {
-//                list = new List<Tuple<string, Action<INotifyPropertyChanged>>>();
-//                _notifier.PropertyChanged += NotifierOnPropertyChanged;
-//                m_subscribers.Add(_notifier, list);
-//            }
-//            list.Add(tuple);
-//        }
-
-//        private void NotifierOnPropertyChanged(object _sender, PropertyChangedEventArgs _args)
-//        {
-//            var notifier = (INotifyPropertyChanged) _sender;
-//            var subscribers = m_subscribers[notifier];
-//            foreach (var tuple in subscribers.Where(_tuple => _args.PropertyName == _tuple.Item1))
-//            {
-//                tuple.Item2(notifier);
-//            }
-//        }
-
-//        protected void UnSubscribe<TNotifier>(TNotifier _notifier) where TNotifier : INotifyPropertyChanged
-//        {
-//            m_subscribers.Remove(_notifier);
-//            _notifier.PropertyChanged -= NotifierOnPropertyChanged;
-//        }
-
-//        public virtual void Dispose()
-//        {
-//            UnSubscribe();
-//            m_subscribers.Clear();
-//        }
-
-//        protected void UnSubscribe()
-//        {
-//            foreach (var notifier in m_subscribers.Keys)
-//            {
-//                notifier.PropertyChanged -= NotifierOnPropertyChanged;
-//            }
-//            m_subscribers.Clear();
-//        }
 
 		#endregion
 

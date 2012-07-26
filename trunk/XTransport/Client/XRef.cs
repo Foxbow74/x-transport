@@ -23,7 +23,7 @@ namespace XTransport.Client
 
 		public override bool IsDirty
 		{
-			get { return CheckValue(m_current, m_original); }
+			get { return !m_current.Equals(m_original); }
 		}
 
 		#region IXClientUserInternal<TKind> Members
@@ -40,7 +40,7 @@ namespace XTransport.Client
 		public T Value
 		{
 			get { return m_object; }
-			set { SetValue(value.Uid); }
+			set { SetValue(value); }
 		}
 
 		#endregion
@@ -70,11 +70,11 @@ namespace XTransport.Client
 					m_original = item.Value;
 					if (_firstTime)
 					{
-						SetValueInternal(m_original);
+						SetValue(m_original);
 					}
 					break;
 				case XReportItemState.CHANGE:
-					SetValueInternal(item.Value);
+					SetValue(item.Value);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException();
@@ -86,29 +86,20 @@ namespace XTransport.Client
 			SetValue(m_original);
 		}
 
-		private void SetValue(Guid _uid)
+		private void SetValue(T _value)
 		{
-			SetValueInternal(_uid);
+			if (m_current.Equals(_value.Uid)) return;
+			m_current = _value.Uid;
+			m_object = _value;
 			OnChanged();
 		}
 
-		private void SetValueInternal(Guid _uid)
+		private void SetValue(Guid _uid)
 		{
-			if (!CheckValue(m_current, _uid)) return;
+			if (m_current.Equals(_uid)) return;
 			m_current = _uid;
-			if (m_factory == null)
-			{
-				m_object = m_client.GetDescriptor(_uid).Get<T>(null);
-			}
-			else
-			{
-				m_object = m_client.GetDescriptor(_uid).Get<T>(m_factory);
-			}
-		}
-
-		private static bool CheckValue(Guid _current, Guid _value)
-		{
-			return !_current.Equals(_value);
+			m_object = m_client.GetInternal<T>(_uid, m_factory);
+			OnChanged();
 		}
 	}
 }

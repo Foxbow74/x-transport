@@ -38,13 +38,25 @@ namespace XTransport.Client
 			SubscribePersistedValuesChanges();
 		}
 
-		internal void OnInstantiationFinished(AbstractXClient<TKind> _client)
+		internal void SetClientInternal(AbstractXClient<TKind> _client)
 		{
 			if (this is IXClientUserInternal<TKind>)
 			{
 				((IXClientUserInternal<TKind>)this).SetClient(_client);
 			}
+			foreach (var pair in m_xValues)
+			{
+				var clientUser = pair.Value as IXClientUserInternal<TKind>;
+				if (clientUser != null)
+				{
+					clientUser.SetClient(_client);
+				}
+			}
+		}
 
+		internal void SetUid(Guid _uid)
+		{
+			Uid = _uid;
 			foreach (var pair in m_xValues)
 			{
 				var collection = pair.Value as IXCollection<TKind>;
@@ -52,13 +64,11 @@ namespace XTransport.Client
 				{
 					collection.SetOwnerInfo(Uid, pair.Key);
 				}
-				var clientUser = pair.Value as IXClientUserInternal<TKind>;
-				if (clientUser != null)
-				{
-					clientUser.SetClient(_client);
-				}
 			}
+		}
 
+		internal void OnInstantiationFinished()
+		{
 			InstantiationFinished();
 		}
 
@@ -181,11 +191,6 @@ namespace XTransport.Client
 			return
 				m_xValues.Where(_pair => _pair.Value.IsDirtyAndHaveReportItems).Select(
 					_pair => _pair.Value.GetXReportItem(_pair.Key));
-		}
-
-		internal void SetUid(Guid _uid)
-		{
-			Uid = _uid;
 		}
 
 		internal IEnumerable<Guid> GetChildUids()

@@ -90,9 +90,7 @@ namespace ClientModulePositionsEditor.VMs
 				foreach (var derivativeVM in abstractDerivativeVms)
 				{
 					derivativeVM.Selected = false;
-					var slot = AlphaClient.Instance.Join(new PortfolioInstrumentVM());
-					slot.Derivative = derivativeVM;
-					m_slots.Add(slot);
+					m_slots.Add(new PortfolioInstrumentVM(){Derivative = derivativeVM});
 				}
 			}
 			RefreshCollections();

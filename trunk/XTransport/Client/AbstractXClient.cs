@@ -162,18 +162,28 @@ namespace XTransport.Client
 
 		protected abstract void ObjectReleased(Guid _uid, TKind _kind);
 
-		public TO Get<TO>(Guid _uid) where TO : ClientXObject<TKind>
+		internal TO GetInternal<TO>(Guid _uid, IXObjectFactory<TKind> _factory) where TO : ClientXObject<TKind>
 		{
+			if (_factory==null && typeof(TO).IsAbstract)
+			{
+				throw new ApplicationException("Can't instantiate abstract type");
+			}
+
 			ClientXObjectDescriptor<TKind> descriptor;
 			if(m_descriptors.TryGetValue(_uid, out descriptor))
 			{
-				return descriptor.Get<TO>(null);
+				return descriptor.Get<TO>(_factory);
 			}
-			Guid collectionOwnerUid = m_transport.GetСollectionOwnerUid(_uid);
+			var collectionOwnerUid = m_transport.GetСollectionOwnerUid(_uid);
 			descriptor = new ClientXObjectDescriptor<TKind>(_uid, this, collectionOwnerUid);
 			m_descriptors.Add(_uid, descriptor);
-			var result = descriptor.Get<TO>(null);
+			var result = descriptor.Get<TO>(_factory);
 			return result;
+		}
+
+		public TO Get<TO>(Guid _uid) where TO : ClientXObject<TKind>
+		{
+			return GetInternal<TO>(_uid, null);
 		}
 
 		internal TO GetInternal<TO>(Guid _uid, IXObjectFactory<TKind> _factory, Guid _collectionOwnerUid) where TO : ClientXObject<TKind>
@@ -223,7 +233,8 @@ namespace XTransport.Client
 			{
 				ownerDescriptor.AddedToCollection(_child, new[] { _fieldId });
 			}
-			_child.OnInstantiationFinished(this);
+			_child.SetClientInternal(this);
+			_child.OnInstantiationFinished();
 		}
 
 		public TO GetRoot<TO>() where TO : ClientXObject<TKind>
@@ -231,12 +242,6 @@ namespace XTransport.Client
 			var descriptor = RootDescriptor;
 			var result = descriptor.Get<TO>(null);
 			return result;
-		}
-
-		public TO Join<TO>(TO _xObject) where TO : ClientXObject<TKind>
-		{
-			_xObject.OnInstantiationFinished(this);
-			return _xObject;
 		}
 
 		private void OnServerObjectSaved(int _kind, Guid _uid, SessionId _sessionId)
