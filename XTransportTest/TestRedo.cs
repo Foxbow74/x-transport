@@ -13,11 +13,9 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var a = cl.GetRoot<Root>().AItems.First();
 			var init = a.Value;
-			Wait();
 			a.Value = 10;
-			Wait();
+			Wait(1);
 			a.Value = 20;
-			Wait();
 			cl.Undo(a.Uid);
 			Assert.AreEqual(10, a.Value);
 			cl.Undo(a.Uid);
@@ -34,13 +32,10 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var a = cl.GetRoot<Root>().AItems.First();
 			var init = a.Value;
-			Wait();
 			a.Value = 10;
-			Wait();
+			Wait(1);
 			a.Value = init;
-			Wait();
 			cl.Undo(a.Uid);
-			Wait();
 			Assert.AreEqual(10, a.Value);
 			cl.Undo(a.Uid);
 			Assert.AreEqual(init, a.Value);
@@ -57,13 +52,11 @@ namespace XTransportTest
 			var root = cl.GetRoot<Root>();
 			var cnt = root.BItems.Count;
 			root.BItems.Add(new B {Value = "A"});
-			Wait();
+			Wait(1);
 			root.BItems.Last().Value = "AA";
-			Wait();
 			cl.Undo(root.Uid);
 			Assert.AreEqual("A", root.BItems.Last().Value);
 			Assert.AreEqual(cnt + 1, root.BItems.Count);
-			Wait();
 			cl.Undo(root.Uid);
 			Assert.AreEqual(cnt, root.BItems.Count);
 			cl.Redo(root.Uid);
@@ -97,7 +90,7 @@ namespace XTransportTest
 
 			var cnt = root.AItems.Count;
 			root.AItems.Add(new A {Value = 5});
-			Wait();
+			Wait(1);
 			root.AItems.Last().Value = 10;
 			cl.Undo(root.Uid);
 			Assert.AreEqual(5, root.AItems.Last().Value);

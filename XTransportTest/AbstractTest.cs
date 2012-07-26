@@ -19,7 +19,6 @@ namespace XTransportTest
 		[TestInitialize]
 		public void Initialize()
 		{
-			Wait();
 			TstServer.DbName = "tst" + (++m_test) + ".db";
 			Uploader.Upload(TstServer.DbName);
 			AbstractXServer.Instance.Reset();
@@ -28,10 +27,9 @@ namespace XTransportTest
 		[TestCleanupAttribute]
 		public void Cleanup()
 		{
-			//Wait(1000);
 		}
 
-		protected static void Wait(int _times = 1)
+		protected static void Wait(int _times)
 		{
 			Thread.Sleep(_times);
 		}
