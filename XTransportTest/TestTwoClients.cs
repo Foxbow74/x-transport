@@ -75,7 +75,9 @@ namespace XTransportTest
 			var cnt = rt1.AItems.Count;
 
 			rt1.AItems.Remove(rt1.AItems.First());
+			Wait(1);
 			rt2.AItems.Remove(rt2.AItems.First());
+			Wait(1);
 			cl1.Save(rt1.Uid);
 			Wait(1000, () => rt1.IsDirty);
 			cl2.Undo(rt2.Uid);
