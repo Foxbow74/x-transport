@@ -83,15 +83,11 @@ namespace XTransport
 			return InsertValueInternal(_lastId, _uid, _field, m_type2Tables[typeof (T)], _value);
 		}
 
-		public void Delete(Guid _storedId, int _field, DateTime _now)
+		public void Delete(Guid _uid, int _field, DateTime _now)
 		{
-			ExecuteInsertOrUpdate("UPDATE main SET vtill=@till WHERE uid=@uid"
-			                      , new SqliteParameter("@uid", _storedId)
-			                      , new SqliteParameter("@till", DateTime.Now));
-
 			ExecuteNonQuery("UPDATE main SET vtill=@till WHERE parent=@uid"
-			                , new SqliteParameter("@uid", _storedId)
-			                , new SqliteParameter("@till", DateTime.Now));
+			                , new SqliteParameter("@uid", _uid)
+							, new SqliteParameter("@till", _now));
 		}
 
 		public int InsertMain(Guid _uid, int _kind, DateTime _now, Guid _parent = default(Guid),
@@ -106,8 +102,7 @@ namespace XTransport
 			}
 			else
 			{
-				ExecuteInsertOrUpdate(
-					CreateCommand("INSERT INTO main (uid, parent, kind, field, vfrom) VALUES (@uid, @parent, @kind, @field, @from)",
+				ExecuteInsertOrUpdate(CreateCommand("INSERT INTO main (uid, parent, kind, field, vfrom) VALUES (@uid, @parent, @kind, @field, @from)",
 					              new SqliteParameter("@uid", _uid),
 					              new SqliteParameter("@parent", _parent),
 					              new SqliteParameter("@kind", _kind),
@@ -121,6 +116,12 @@ namespace XTransport
 		public IDisposable CreateTransaction()
 		{
 			return new Transaction(this);
+		}
+
+		public Guid GetCollectionOwnerUid(Guid _uid)
+		{
+			var scalar = (string)CreateCommand("SELECT parent FROM main WHERE uid=@uid", new SqliteParameter("@uid", _uid)).ExecuteScalar();
+			return new Guid(scalar);
 		}
 
 		public IEnumerable<StorageRootObject> LoadRoot()
@@ -145,10 +146,7 @@ namespace XTransport
 
 		public DateTime LoadObjectParameters(Guid _uid, out int _kind)
 		{
-			using (
-				var rdr =
-					CreateCommand("select kind, vfrom from main where uid=@uid", new SqliteParameter("@uid", _uid)).ExecuteReader(
-						CommandBehavior.CloseConnection))
+			using (var rdr = CreateCommand("select kind, vfrom from main where uid=@uid", new SqliteParameter("@uid", _uid)).ExecuteReader(CommandBehavior.CloseConnection))
 			{
 				while (rdr.Read())
 				{
@@ -193,71 +191,6 @@ namespace XTransport
 						var id = (int) rdr[F_ID];
 						vuids.Add(id, new Guid((string) parent));
 						vfields.Add(id, (int) rdr[MF_FIELD]);
-					}
-				}
-			}
-
-			foreach (var table in m_type2Tables)
-			{
-				using (var rdr = CreateCommand("select * from " + table.Value).ExecuteReader(CommandBehavior.CloseConnection))
-				{
-					while (rdr.Read())
-					{
-						var id = (int) rdr[F_ID];
-						int field;
-						if (vfields.TryGetValue(id, out field))
-						{
-							var val = m_tables2Type[table.Key](rdr[VF_VALUE]);
-							val.Id = id;
-							val.Field = field;
-							val.Owner = vuids[id];
-							val.OldId = (int) rdr[F_ID];
-							yield return val;
-						}
-					}
-				}
-			}
-		}
-
-		public IEnumerable<IStorageRecord> LoadAll()
-		{
-			var vuids = new Dictionary<int, Guid>();
-			var vfields = new Dictionary<int, int>();
-			using (
-				var rdr =
-					CreateCommand("select * from main where vtill IS NULL OR vtill<@now", new SqliteParameter("@now", DateTime.Now)).
-						ExecuteReader(CommandBehavior.CloseConnection))
-			{
-				while (rdr.Read())
-				{
-					var parent = rdr[MF_PARENT];
-					var kind = rdr[MF_KIND];
-					var uid = rdr[MF_UID];
-					var vform = rdr[MF_FROM];
-					if (parent == null)
-					{
-						yield return new StorageObject {Kind = (int) kind, Uid = new Guid((string) uid), ValidFrom = (DateTime) vform};
-					}
-					else
-					{
-						if (kind != null)
-						{
-							yield return
-								new StorageChild
-									{
-										Kind = (int) kind,
-										Uid = new Guid((string) uid),
-										Parent = new Guid((string) parent),
-										Field = (int) rdr[MF_FIELD],
-										ValidFrom = (DateTime) vform,
-									};
-						}
-						else
-						{
-							var id = (int) rdr[F_ID];
-							vuids.Add(id, new Guid((string) parent));
-							vfields.Add(id, (int) rdr[MF_FIELD]);
-						}
 					}
 				}
 			}

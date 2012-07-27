@@ -14,6 +14,7 @@ namespace XTransport.Server
 		private readonly AutoResetEvent m_are = new AutoResetEvent(true);
 
 		private readonly Dictionary<Guid, ServerXObjectContainer> m_objects = new Dictionary<Guid, ServerXObjectContainer>();
+		private readonly Dictionary<Guid, Guid> m_parents = new Dictionary<Guid, Guid>();
 
 		private readonly Dictionary<SessionId, Session> m_sessions = new Dictionary<SessionId, Session>();
 
@@ -38,11 +39,6 @@ namespace XTransport.Server
 		internal ServerXObjectRoot Root
 		{
 			get { return m_are.GetSafely(ref m_root, CreateAndLoadRoot); }
-		}
-
-		protected virtual bool LoadAllOnStart
-		{
-			get { return false; }
 		}
 
 		internal SessionId Login(Guid _userUid)
@@ -190,8 +186,6 @@ namespace XTransport.Server
 			return root;
 		}
 
-		Dictionary<Guid, Guid> m_parents = new Dictionary<Guid, Guid>();
-
 		protected abstract IStorage CreateStorage();
 
 		internal void ClientObjectReverted(Guid _uid, SessionId _sessionId)
@@ -225,10 +219,7 @@ namespace XTransport.Server
 			}
 			var saved = obj.Save(_sessionId, _st, _now, this);
 			saved = obj.SaveChildren(this, _sessionId, _st, _now) | saved;
-			//if (saved)
-			{
-				OnServerObjectSaved(_uid, _sessionId);
-			}
+			OnServerObjectSaved(_uid, _sessionId);
 			return saved;
 		}
 
@@ -292,41 +283,6 @@ namespace XTransport.Server
 			m_serverObjectSaved = null;
 			m_root = null;
 			m_objects.Clear();
-			if (LoadAllOnStart)
-			{
-				LoadAll();
-			}
-		}
-
-		private void LoadAll()
-		{
-			using (var st = CreateStorage())
-			{
-				foreach (var record in st.LoadAll())
-				{
-					if (record is StorageObject)
-					{
-						var rt = (StorageObject) record;
-						var obj = new ServerXObjectContainer(rt.Kind, rt.Uid, rt.ValidFrom);
-						m_objects.Add(rt.Uid, obj);
-						if (record is StorageChild)
-						{
-							var chd = (StorageChild) record;
-							m_objects[chd.Parent].AddChildren(chd.Field, chd.Uid);
-							m_parents[chd.Uid] = chd.Parent;
-						}
-					}
-					else if (record is IStorageValueInternal)
-					{
-						var val = (IStorageValueInternal) record;
-						m_objects[val.Owner].SetValue(val.Field, val);
-					}
-					else
-					{
-						throw new NotImplementedException();
-					}
-				}
-			}
 		}
 
 		internal void Delete(IStorage _storage, Guid _uid, int _field, DateTime _now)
@@ -336,7 +292,16 @@ namespace XTransport.Server
 
 		public Guid GetСollectionOwnerUid(Guid _uid)
 		{
-			return m_parents[_uid];
+			Guid result;
+			if (!m_parents.TryGetValue(_uid, out result))
+			{
+				using (var st = CreateStorage())
+				{
+					result = st.GetCollectionOwnerUid(_uid);
+				}
+				m_parents[_uid] = result;
+			}
+			return result;
 		}
 	}
 }
