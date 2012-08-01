@@ -35,8 +35,7 @@ namespace XTransport
 
 		public override AbstractXReportItem UpdateAccordingNewValue(IServerXValue _xValue, AbstractXReportItem _reverseReport)
 		{
-			var original =
-				((XReportList) _xValue.GetOriginalValueReportItem(-1, null)).Items.Select(_item => _item.Uid).ToArray();
+			var original = ((XReportList) _xValue.GetOriginalValueReportItem(-1, null)).Items.Select(_item => _item.Uid).ToArray();
 			var target = original.ToList();
 			if (_reverseReport != null)
 			{

@@ -34,7 +34,7 @@ namespace XTransport.Client
 			m_client = _client;
 		}
 
-		public ClientXObjectDescriptor(ClientXObject<TKind> _newBorn, AbstractXClient<TKind> _client, int _kindId, Guid _parentUid)
+		public ClientXObjectDescriptor(ClientXObject<TKind> _newBorn, AbstractXClient<TKind> _client, int _kindId, Guid _parentUid, uint _generation)
 			: this(_newBorn.Uid, _client, _parentUid)
 		{
 			var child = _newBorn as IClientXChildObject<TKind>;
@@ -45,20 +45,19 @@ namespace XTransport.Client
 			m_instances.Add(_newBorn.GetType(), _newBorn);
 			m_instancesCounter.Add(_newBorn, 1);
 			Kind = _kindId;
-			var now = DateTime.Now;
+			ActualFrom = _generation;
 			_newBorn.Changed += XObjectChanged;
 			var changes = _newBorn.GetChanges();
 			if (changes.Any())
 			{
-				Report = new ServerXReport(_newBorn.Uid, _newBorn.GetChanges(), now, now, DateTime.MinValue,
+				Report = new ServerXReport(_newBorn.Uid, _newBorn.GetChanges(), 0, 0, 0,
 										   m_client.KindToIntInternal(_newBorn.Kind));
 			}
 		}
 
-		public DateTime ActualFrom { get; set; }
-		public DateTime Stored { get; set; }
-		public DateTime Loaded { get; set; }
-		public DateTime LastModified { get; set; }
+		public uint ActualFrom { get; set; }
+		public uint Stored { get; set; }
+		public uint LastModified { get; set; }
 
 		private int Kind
 		{
@@ -94,7 +93,7 @@ namespace XTransport.Client
 				{
 					LastModified = m_report.LastModification;
 					Stored = m_report.StoredActualFrom;
-					ActualFrom = Loaded = m_report.ActualFrom;
+					ActualFrom = m_report.ActualFrom;
 				}
 			}
 		}
@@ -230,9 +229,8 @@ namespace XTransport.Client
 			var xObject = ((ClientXObject<TKind>) _xObject);
 			var changes = xObject.GetChanges().ToArray();
 
-			var xReport = new XReport(_xObject.Uid, changes, DateTime.Now, Kind);
+			var xReport = new XReport(_xObject.Uid, changes, Kind);
 
-			ActualFrom = LastModified = xReport.ActualFrom;
 			Report.MergeChanges(xReport);
 			foreach (var obj in m_instances.Values)
 			{
@@ -243,13 +241,12 @@ namespace XTransport.Client
 					obj.Changed += XObjectChanged;
 				}
 			}
-			m_client.ClientObjectChanged(xReport);
+			ActualFrom = LastModified = m_client.ClientObjectChanged(xReport);
 			ClearState();
 		}
 
 		public void ServerObjectSaved(bool _local)
 		{
-			//get new report with ORIGINAL values, instead CHANGES
 			Report = m_client.GetReport(Kind, Uid);
 
 			if (_local)
@@ -268,12 +265,13 @@ namespace XTransport.Client
 					obj.Changed += XObjectChanged;
 				}
 			}
+			//Stored = Report.StoredActualFrom;
 			ClearState();
 		}
 
 		public void Revert()
 		{
-			ActualFrom = LastModified = Loaded = Stored;
+			ActualFrom = LastModified = Stored;
 			foreach (var obj in m_instances.Values)
 			{
 				obj.Changed -= XObjectChanged;
@@ -291,7 +289,7 @@ namespace XTransport.Client
 			{
 				Debug.WriteLine("REVERT\tActualFrom=\t" + Stored);
 				// Have no undo info, just revert existing changes
-				ActualFrom = Loaded = Stored;
+				ActualFrom = Stored;
 				foreach (var obj in m_instances.Values)
 				{
 					obj.Changed -= XObjectChanged;
@@ -359,9 +357,9 @@ namespace XTransport.Client
 		{
 			public State(ClientXObjectDescriptor<TKind> _descriptor)
 			{
-				IsUndoEnabled = _descriptor.ActualFrom > _descriptor.Loaded;
+				IsUndoEnabled = _descriptor.ActualFrom > _descriptor.Stored;
 				IsRedoEnabled = _descriptor.ActualFrom < _descriptor.LastModified;
-				IsRevertEnabled = _descriptor.Loaded < _descriptor.Stored || _descriptor.ActualFrom > _descriptor.Loaded;
+				IsRevertEnabled = _descriptor.ActualFrom > _descriptor.Stored;
 				foreach (var clientXObjectInternal in _descriptor.m_instances.Values)
 				{
 					foreach (var uid in clientXObjectInternal.GetChildUids())

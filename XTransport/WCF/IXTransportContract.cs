@@ -24,7 +24,7 @@ namespace XTransport.WCF
 		IEnumerable<ServerXReport> Redo(Guid _uid, SessionId _sessionId);
 
 		[OperationContract]
-		void ClientObjectChanged(XReport _report, SessionId _sessionId);
+		uint ClientObjectChanged(XReport _report, SessionId _sessionId);
 
 		[OperationContract]
 		void ClientObjectReverted(Guid _uid, SessionId _sessionId);
@@ -36,7 +36,7 @@ namespace XTransport.WCF
 		SessionId Login(Guid _userUid);
 
 		[OperationContract]
-		void AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid);
+		uint AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid);
 
 		[OperationContract]
 		Guid GetRootUid();

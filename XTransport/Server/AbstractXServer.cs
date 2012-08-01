@@ -54,11 +54,13 @@ namespace XTransport.Server
 			return ss.SessionId;
 		}
 
-		internal void AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid)
+		internal uint AddNew(XReport _report, SessionId _sessionId, Guid _parentUid)
 		{
-			var obj = new ServerXObjectContainer(_xReport.Kind, _xReport.Uid, default(DateTime));
-			obj.FillFromClient(_xReport, _sessionId);
-			m_objects.Add(_xReport.Uid, obj);
+			_report.ActualFrom = NextGeneration();
+			var obj = new ServerXObjectContainer(_report.Kind, _report.Uid);
+			obj.FillFromClient(_report, _sessionId);
+			m_objects.Add(_report.Uid, obj);
+			return _report.ActualFrom;
 		}
 
 		internal ServerXReport GetReport(int _kind, Guid _uid, SessionId _sessionId)
@@ -106,14 +108,23 @@ namespace XTransport.Server
 			return _xObject;
 		}
 
-		internal void ClientObjectChanged(XReport _report, SessionId _sessionId)
+		private uint m_generation = 2;
+
+		public uint NextGeneration()
 		{
+			return m_generation++;
+		}
+
+		internal uint ClientObjectChanged(XReport _report, SessionId _sessionId)
+		{
+			_report.ActualFrom = NextGeneration();
 			m_objects[_report.Uid].AddChanges(_sessionId, _report);
+			return _report.ActualFrom;
 		}
 
 		internal IEnumerable<UndoXReport> Undo(Guid _uid, SessionId _sessionId)
 		{
-			var dateTime = DateTime.MinValue;
+			var dateTime = uint.MinValue;
 			var candidates = new List<Guid>();
 			GetAvailableUndoDate(_uid, _sessionId, this, ref dateTime, ref candidates);
 
@@ -126,7 +137,7 @@ namespace XTransport.Server
 			return reports;
 		}
 
-		internal void GetAvailableUndoDate(Guid _uid, SessionId _sessionId, AbstractXServer _server, ref DateTime _dateTime,
+		internal void GetAvailableUndoDate(Guid _uid, SessionId _sessionId, AbstractXServer _server, ref uint _dateTime,
 		                                   ref List<Guid> _candidates)
 		{
 			ServerXObjectContainer xObjectContainer;
@@ -138,7 +149,7 @@ namespace XTransport.Server
 
 		internal IEnumerable<ServerXReport> Redo(Guid _uid, SessionId _sessionId)
 		{
-			var dateTime = DateTime.MaxValue;
+			var dateTime = uint.MaxValue;
 			var candidates = new List<Guid>();
 			GetAvailableRedoDate(_uid, _sessionId, this, ref dateTime, ref candidates);
 
@@ -150,13 +161,13 @@ namespace XTransport.Server
 			return reports;
 		}
 
-		internal void GetAvailableRedoDate(Guid _uid, SessionId _sessionId, AbstractXServer _server, ref DateTime _dateTime,
+		internal void GetAvailableRedoDate(Guid _uid, SessionId _sessionId, AbstractXServer _server, ref uint _generation,
 		                                   ref List<Guid> _candidates)
 		{
 			ServerXObjectContainer xObjectContainer;
 			if (m_objects.TryGetValue(_uid, out xObjectContainer))
 			{
-				xObjectContainer.GetAvailableRedoDate(_sessionId, this, ref _dateTime, ref _candidates);
+				xObjectContainer.GetAvailableRedoDate(_sessionId, this, ref _generation, ref _candidates);
 			}
 		}
 
@@ -212,9 +223,9 @@ namespace XTransport.Server
 				return false;
 			}
 
-			if (obj.Stored == default(DateTime) && _uid != GetRootUid())
+			if (obj.Stored == 0 && _uid != GetRootUid())
 			{
-				obj.Stored = _now;
+				obj.Stored = obj.GetCurrentGeneration(_sessionId);
 				obj.StoredId = _st.InsertMain(obj.Uid, obj.Kind, _now);
 			}
 			var saved = obj.Save(_sessionId, _st, _now, this);
@@ -238,10 +249,11 @@ namespace XTransport.Server
 			}
 
 			var saved = false;
-			if (child.Stored == default(DateTime))
+			if (child.Stored == 0)
 			{
 				saved = true;
-				child.Stored = _now;
+				child.ValidFrom = _now;
+				child.Stored = 1;
 				child.StoredId = _storage.InsertMain(child.Uid, child.Kind, _now, _ownerUid, _field);
 			}
 			saved = child.Save(_sessionId, _storage, _now, this) | saved;

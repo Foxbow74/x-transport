@@ -25,12 +25,6 @@ namespace XTransport.Server
 
 		public static bool operator ==(SessionId _first, SessionId _second)
 		{
-			if (ReferenceEquals(_first, _second))
-				return true;
-
-			if (((object) _first == null) || ((object) _second == null))
-				return false;
-
 			return _first.m_value == _second.m_value;
 		}
 

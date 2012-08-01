@@ -106,6 +106,7 @@ namespace XTransportTest
 			cl2.Undo(rt2.Uid);
 			Assert.AreEqual(aValue, rt2.AItems.Last().Value);
 			cl2.Undo(rt2.Uid);
+			Assert.AreEqual(rt1.AItems.Count, rt2.AItems.Count);
 			Assert.AreEqual(rt1.AItems.Last().Value, rt2.AItems.Last().Value);
 		}
 	}

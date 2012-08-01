@@ -8,7 +8,7 @@ namespace XTransport.Server
 	internal class ServerXObjectRoot : ServerXObjectContainer
 	{
 		public ServerXObjectRoot(Guid _uid)
-			: base(-1, _uid, default(DateTime))
+			: base(-1, _uid)
 		{
 		}
 

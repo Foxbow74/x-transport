@@ -10,10 +10,9 @@ namespace XTransport
 	[KnownType("GetKnownType")]
 	internal class XReport
 	{
-		public XReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, DateTime _actualFrom, int _kind)
+		public XReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, int _kind)
 		{
 			Uid = _uid;
-			ActualFrom = _actualFrom;
 			Items = _items.ToList();
 			Kind = _kind;
 		}
@@ -25,7 +24,7 @@ namespace XTransport
 		internal List<AbstractXReportItem> Items { get; private set; }
 
 		[DataMember]
-		public DateTime ActualFrom { get; private set; }
+		public uint ActualFrom { get; set; }
 
 		[DataMember]
 		public int Kind { get; private set; }
@@ -57,9 +56,7 @@ namespace XTransport
 			var items = new List<AbstractXReportItem>();
 			foreach (var reportItem in Items)
 			{
-				var newItem = reportItem.UpdateAccordingNewValue(_xValues[reportItem.FieldId],
-				                                                 _reverseReport.Items.SingleOrDefault(
-				                                                 	_item => _item.FieldId == reportItem.FieldId));
+				var newItem = reportItem.UpdateAccordingNewValue(_xValues[reportItem.FieldId], _reverseReport.Items.SingleOrDefault(_item => _item.FieldId == reportItem.FieldId));
 				if (newItem != null)
 				{
 					items.Add(newItem);
