@@ -72,9 +72,9 @@ namespace XTransport.WCF
 			return ServiceContract.Redo(_uid, _sessionId);
 		}
 
-		public void ClientObjectChanged(XReport _report, SessionId _sessionId)
+		public uint ClientObjectChanged(XReport _report, SessionId _sessionId)
 		{
-			ServiceContract.ClientObjectChanged(_report, _sessionId);
+			return ServiceContract.ClientObjectChanged(_report, _sessionId);
 		}
 
 		public void ClientObjectReverted(Guid _uid, SessionId _sessionId)
@@ -92,9 +92,9 @@ namespace XTransport.WCF
 			return ServiceContract.Login(_userUid);
 		}
 
-		public void AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid)
+		public uint AddNew(XReport _xReport, SessionId _sessionId, Guid _parentUid)
 		{
-			ServiceContract.AddNew(_xReport, _sessionId, _parentUid);
+			return ServiceContract.AddNew(_xReport, _sessionId, _parentUid);
 		}
 
 		public Guid GetRootUid()

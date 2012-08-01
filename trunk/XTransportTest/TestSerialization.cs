@@ -19,7 +19,7 @@ namespace XTransportTest
 			var cl = new TstClient();
 			var a = cl.GetRoot<Root>().AItems.First();
 			a.Value = 10;
-			var report = new XReport(a.Uid, a.GetChanges(), DateTime.Now, (int) a.Kind);
+			var report = new XReport(a.Uid, a.GetChanges(), (int) a.Kind);
 
 			var ser = new DataContractSerializer(typeof (XReport)
 				//, new Type[] { typeof(XReportItem<Int32>)}

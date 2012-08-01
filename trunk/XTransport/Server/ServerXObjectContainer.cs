@@ -14,14 +14,25 @@ namespace XTransport.Server
 		private readonly Dictionary<int, int> m_xValueOldIds = new Dictionary<int, int>();
 		private readonly Dictionary<int, IServerXValue> m_xValues = new Dictionary<int, IServerXValue>();
 
-		public ServerXObjectContainer(int _kind, Guid _uid, DateTime _stored)
+		public ServerXObjectContainer(int _kind, Guid _uid, DateTime _validFrom)
 		{
 			m_kind = _kind;
 			Uid = _uid;
-			Stored = _stored;
+			Stored = 1;
+			ValidFrom = _validFrom;
 		}
 
-		public DateTime Stored { get; internal set; }
+		public ServerXObjectContainer(int _kind, Guid _uid)
+		{
+			m_kind = _kind;
+			Uid = _uid;
+			Stored = 0;
+			ValidFrom = default(DateTime);
+		}
+
+		public DateTime ValidFrom { get; set; }
+		public uint Stored { get; set; }
+
 		public int StoredId { get; set; }
 
 		public Guid Uid { get; internal set; }
@@ -106,8 +117,10 @@ namespace XTransport.Server
 				}
 				reports.Clear();
 				m_currentVersion[_sessionId] = -1;
+				//Stored = changes.ActualFrom;
+				ValidFrom = _now;
 
-				var reverseReport = new XReport(changes.Uid, reverseItems, _now, changes.Kind);
+				var reverseReport = new XReport(changes.Uid, reverseItems, changes.Kind) { ActualFrom = changes.ActualFrom };
 				foreach (var pair in m_changes)
 				{
 					if (pair.Key == _sessionId)
@@ -151,12 +164,6 @@ namespace XTransport.Server
 			m_currentVersion[_sessionId] = -1;
 		}
 
-		internal void FillFromClient(XReport _xReport, SessionId _sessionId)
-		{
-			Uid = _xReport.Uid;
-			AddChanges(_sessionId, _xReport);
-		}
-
 		internal UndoXReport Undo(SessionId _sessionId)
 		{
 			if (m_currentVersion.ContainsKey(_sessionId))
@@ -174,7 +181,7 @@ namespace XTransport.Server
 		}
 
 		internal void GetAvailableUndoDate(SessionId _sessionId, AbstractXServer _server,
-		                                   ref DateTime _dateTime, ref List<Guid> _candidates)
+		                                   ref uint _dateTime, ref List<Guid> _candidates)
 		{
 			XReport changes = null;
 			var result = Stored;
@@ -245,7 +252,7 @@ namespace XTransport.Server
 		}
 
 		internal void GetAvailableRedoDate(SessionId _sessionId, AbstractXServer _server,
-		                                   ref DateTime _dateTime, ref List<Guid> _candidates)
+		                                   ref uint _generation, ref List<Guid> _candidates)
 		{
 			XReport changes = null;
 			int version;
@@ -257,12 +264,12 @@ namespace XTransport.Server
 					{
 						changes = m_changes[_sessionId][version + 1];
 						var result = changes.ActualFrom;
-						if (result < _dateTime)
+						if (result < _generation)
 						{
 							_candidates.Clear();
-							_dateTime = result;
+							_generation = result;
 						}
-						if (result == _dateTime)
+						if (result == _generation)
 						{
 							_candidates.Add(Uid);
 						}
@@ -288,8 +295,14 @@ namespace XTransport.Server
 			}
 			foreach (var uid in uids)
 			{
-				_server.GetAvailableRedoDate(uid, _sessionId, _server, ref _dateTime, ref _candidates);
+				_server.GetAvailableRedoDate(uid, _sessionId, _server, ref _generation, ref _candidates);
 			}
+		}
+
+		internal void FillFromClient(XReport _xReport, SessionId _sessionId)
+		{
+			Uid = _xReport.Uid;
+			AddChanges(_sessionId, _xReport);
 		}
 
 		internal void AddChanges(SessionId _sessionId, XReport _report)
@@ -344,7 +357,7 @@ namespace XTransport.Server
 			return result;
 		}
 
-		internal ServerXReport GetReport(SessionId _sessionId, DateTime _actualFor)
+		internal ServerXReport GetReport(SessionId _sessionId, uint _actualFor)
 		{
 			var actualFrom = Stored;
 			var lastModification = Stored;
@@ -378,6 +391,16 @@ namespace XTransport.Server
 
 			var result = new ServerXReport(Uid, items, actualFrom, lastModification, Stored, Kind);
 			return result;
+		}
+
+		public uint GetCurrentGeneration(SessionId _sessionId)
+		{
+			int current;
+			if(m_currentVersion.TryGetValue(_sessionId, out current))
+			{
+				return m_changes[_sessionId][current].ActualFrom;
+			}
+			return Stored;
 		}
 	}
 }
