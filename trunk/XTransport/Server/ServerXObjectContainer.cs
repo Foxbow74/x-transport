@@ -120,13 +120,13 @@ namespace XTransport.Server
 				//Stored = changes.ActualFrom;
 				ValidFrom = _now;
 
-				var reverseReport = new XReport(changes.Uid, reverseItems, changes.Kind) { ActualFrom = changes.ActualFrom };
 				foreach (var pair in m_changes)
 				{
 					if (pair.Key == _sessionId)
 					{
 						continue;
 					}
+					var reverseReport = new XReport(changes.Uid, reverseItems, changes.Kind, EState.UNDO_ABLE | EState.REVERT_ABLE | (pair.Value.Any()?EState.REDO_ABLE : EState.SINGLE)) { ActualFrom = changes.ActualFrom };
 					foreach (var xReport in pair.Value)
 					{
 						xReport.UpdateAccordingNewValues(m_xValues, reverseReport);
@@ -174,7 +174,7 @@ namespace XTransport.Server
 					var reports = m_changes[_sessionId];
 					var actual = reports[version];
 					var last = reports[reports.Count - 1];
-					return new UndoXReport(Uid, actual.Items, actual.ActualFrom, last.ActualFrom, Stored, Kind);
+					return new UndoXReport(Uid, actual.Items, actual.ActualFrom, Kind, EState.UNDO_ABLE|EState.REVERT_ABLE|(last!=actual?EState.REDO_ABLE : EState.SINGLE));
 				}
 			}
 			return new UndoXReport(Uid, Stored, Kind);
@@ -248,7 +248,7 @@ namespace XTransport.Server
 			var version = ++m_currentVersion[_sessionId];
 			var actual = reports[version];
 			var last = reports[reports.Count - 1];
-			return new ServerXReport(Uid, actual.Items, actual.ActualFrom, last.ActualFrom, Stored, Kind);
+			return new ServerXReport(Uid, actual.Items, actual.ActualFrom, Kind, EState.UNDO_ABLE | EState.REVERT_ABLE | (last!=actual ? EState.REDO_ABLE : EState.SINGLE));
 		}
 
 		internal void GetAvailableRedoDate(SessionId _sessionId, AbstractXServer _server,
@@ -330,6 +330,7 @@ namespace XTransport.Server
 			var actualFrom = Stored;
 			var lastModification = Stored;
 			List<XReport> reports;
+			var state = EState.SINGLE;
 
 			var items = new List<AbstractXReportItem>();
 			foreach (var pair in m_xValues)
@@ -341,8 +342,15 @@ namespace XTransport.Server
 			{
 				if (m_currentVersion[_sessionId] >= 0)
 				{
-					lastModification = reports[reports.Count - 1].ActualFrom;
-					var changes = reports[m_currentVersion[_sessionId]];
+					var last = reports[reports.Count - 1];
+					var actual = reports[m_currentVersion[_sessionId]];
+
+					state |= EState.UNDO_ABLE|EState.REVERT_ABLE;
+					if (last != actual) state |= EState.REDO_ABLE;
+
+
+					lastModification = last.ActualFrom;
+					var changes = actual;
 					items.AddRange(changes.Items);
 					actualFrom = changes.ActualFrom;
 				}
@@ -353,7 +361,7 @@ namespace XTransport.Server
 				m_currentVersion.Add(_sessionId, -1);
 			}
 
-			var result = new ServerXReport(Uid, items, actualFrom, lastModification, Stored, Kind);
+			var result = new ServerXReport(Uid, items, actualFrom, Kind, state);
 			return result;
 		}
 
@@ -389,7 +397,7 @@ namespace XTransport.Server
 				}
 			}
 
-			var result = new ServerXReport(Uid, items, actualFrom, lastModification, Stored, Kind);
+			var result = new ServerXReport(Uid, items, actualFrom, Kind, EState.SINGLE);
 			return result;
 		}
 

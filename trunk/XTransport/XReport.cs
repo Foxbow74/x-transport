@@ -10,12 +10,15 @@ namespace XTransport
 	[KnownType("GetKnownType")]
 	internal class XReport
 	{
-		public XReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, int _kind)
+		public XReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, int _kind, EState _state)
 		{
+			State = _state;
 			Uid = _uid;
 			Items = _items.ToList();
 			Kind = _kind;
 		}
+
+		public EState State { get; set; }
 
 		[DataMember]
 		public Guid Uid { get; private set; }

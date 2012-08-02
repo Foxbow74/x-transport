@@ -31,7 +31,7 @@ namespace XTransport.Client
 		public abstract Guid UserUid { get; }
 		protected abstract IEnumerable<KeyValuePair<TKind, TKind>> GetAbstractRootKindMap();
 
-		internal uint ClientObjectChanged(XReport _xReport)
+		internal void ClientObjectChanged(XReport _xReport)
 		{
 			if (_xReport.Uid == RootDescriptor.Uid)
 			{
@@ -41,7 +41,7 @@ namespace XTransport.Client
 					_xReport.Items.Remove(item);
 				}
 			}
-			return m_transport.ClientObjectChanged(_xReport, m_sessionId);
+			m_transport.ClientObjectChanged(_xReport, m_sessionId);
 		}
 
 		internal ClientXObjectDescriptor<TKind> GetDescriptor(Guid _uid)
@@ -214,11 +214,11 @@ namespace XTransport.Client
 			}
 
 			var kindId = KindToInt(_child.Kind);
-			var report = new XReport(_child.Uid, _child.GetChanges(), kindId);
+			var report = new XReport(_child.Uid, _child.GetChanges(), kindId, EState.SINGLE);
 
-			var generation = m_transport.AddNew(report, m_sessionId, _collectionOwnerUid);
+			m_transport.AddNew(report, m_sessionId, _collectionOwnerUid);
 
-			var descriptor = new ClientXObjectDescriptor<TKind>(_child, this, kindId, _collectionOwnerUid, generation);
+			var descriptor = new ClientXObjectDescriptor<TKind>(_child, this, kindId, _collectionOwnerUid);
 			m_descriptors.Add(_child.Uid, descriptor);
 
 			var ownerDescriptor = GetDescriptor(_collectionOwnerUid);
@@ -314,7 +314,11 @@ namespace XTransport.Client
 
 		public void ClearState(Guid _parentUid)
 		{
-			GetDescriptor(_parentUid).ClearState();
+			ClientXObjectDescriptor<TKind> descriptor;
+			if(m_descriptors.TryGetValue(_parentUid, out descriptor))
+			{
+				descriptor.ResetState();
+			}
 		}
 
 		private void SetAbstractRootKindMap(IEnumerable<KeyValuePair<TKind, TKind>> _map)

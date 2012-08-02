@@ -24,7 +24,7 @@ namespace XTransport.WCF
 		IEnumerable<ServerXReport> Redo(Guid _uid, SessionId _sessionId);
 
 		[OperationContract]
-		uint ClientObjectChanged(XReport _report, SessionId _sessionId);
+		void ClientObjectChanged(XReport _report, SessionId _sessionId);
 
 		[OperationContract]
 		void ClientObjectReverted(Guid _uid, SessionId _sessionId);

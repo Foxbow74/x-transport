@@ -62,9 +62,9 @@ namespace XTransport.WCF
 			return Implementation.Redo(_uid, _sessionId);
 		}
 
-		public uint ClientObjectChanged(XReport _report, SessionId _sessionId)
+		public void ClientObjectChanged(XReport _report, SessionId _sessionId)
 		{
-			return Implementation.ClientObjectChanged(_report, _sessionId);
+			Implementation.ClientObjectChanged(_report, _sessionId);
 		}
 
 		public void ClientObjectReverted(Guid _uid, SessionId _sessionId)
