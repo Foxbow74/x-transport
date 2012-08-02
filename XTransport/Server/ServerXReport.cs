@@ -8,14 +8,14 @@ namespace XTransport.Server
 	[DataContract]
 	internal class UndoXReport : ServerXReport
 	{
-		public UndoXReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, uint _actualFrom, uint _lastModification, uint _storedActualFrom, int _kind) 
-			: base(_uid, _items, _actualFrom, _lastModification, _storedActualFrom, _kind)
+		public UndoXReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, uint _actualFrom, int _kind, EState _state) 
+			: base(_uid, _items, _actualFrom, _kind, _state)
 		{
 			NeedRevert = false;
 		}
 
 		public UndoXReport(Guid _uid, uint _stored, int _kind)
-			: base(_uid, new AbstractXReportItem[0], _stored, _stored, _stored, _kind)
+			: base(_uid, new AbstractXReportItem[0], _stored, _kind, EState.REDO_ABLE)
 		{
 			NeedRevert = true;
 		}
@@ -28,20 +28,11 @@ namespace XTransport.Server
 	[KnownType("GetKnownType")]
 	internal class ServerXReport : XReport
 	{
-		public ServerXReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, uint _actualFrom, uint _lastModification, uint _storedActualFrom, int _kind)
-			: base(_uid, _items, _kind)
+		public ServerXReport(Guid _uid, IEnumerable<AbstractXReportItem> _items, uint _actualFrom, int _kind, EState _state)
+			: base(_uid, _items, _kind, _state)
 		{
 			ActualFrom = _actualFrom;
-			LastModification = _lastModification;
-			StoredActualFrom = _storedActualFrom;
 		}
-
-
-		[DataMember]
-		public uint StoredActualFrom { get; private set; }
-
-		[DataMember]
-		public uint LastModification { get; private set; }
 
 		private static Type[] GetKnownType()
 		{
@@ -62,6 +53,8 @@ namespace XTransport.Server
 
 		public void MergeChanges(XReport _report)
 		{
+			State = EState.UNDO_ABLE | EState.REVERT_ABLE;
+			
 			foreach (var reportItem in _report.Items)
 			{
 				switch (reportItem.State)

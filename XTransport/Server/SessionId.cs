@@ -43,4 +43,15 @@ namespace XTransport.Server
 			return m_value.ToString();
 		}
 	}
+
+	[Flags]
+	internal enum EState
+	{
+		SINGLE = 0,
+		UNDO_ABLE = 0x1 << 0,
+		REDO_ABLE = 0x1 << 1,
+		REVERT_ABLE = 0x1 << 2,
+
+		UNKNOWN = 0x1 << 15,
+	}
 }

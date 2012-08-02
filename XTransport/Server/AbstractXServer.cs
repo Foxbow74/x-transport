@@ -115,11 +115,10 @@ namespace XTransport.Server
 			return m_generation++;
 		}
 
-		internal uint ClientObjectChanged(XReport _report, SessionId _sessionId)
+		internal void ClientObjectChanged(XReport _report, SessionId _sessionId)
 		{
 			_report.ActualFrom = NextGeneration();
 			m_objects[_report.Uid].AddChanges(_sessionId, _report);
-			return _report.ActualFrom;
 		}
 
 		internal IEnumerable<UndoXReport> Undo(Guid _uid, SessionId _sessionId)

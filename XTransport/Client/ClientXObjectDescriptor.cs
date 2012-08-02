@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using XTransport.Server;
 
@@ -13,8 +12,6 @@ namespace XTransport.Client
 		private readonly Dictionary<Type, ClientXObject<TKind>> m_instances = new Dictionary<Type, ClientXObject<TKind>>();
 
 		private readonly Dictionary<IClientXObject<TKind>, int> m_instancesCounter = new Dictionary<IClientXObject<TKind>, int>();
-
-		private State m_currentState;
 
 		private int m_kind;
 		private bool m_notInitialized = true;
@@ -34,7 +31,14 @@ namespace XTransport.Client
 			m_client = _client;
 		}
 
-		public ClientXObjectDescriptor(ClientXObject<TKind> _newBorn, AbstractXClient<TKind> _client, int _kindId, Guid _parentUid, uint _generation)
+		/// <summary>
+		/// Вызывается для создания дескриптора для нового объекта
+		/// </summary>
+		/// <param name="_newBorn"></param>
+		/// <param name="_client"></param>
+		/// <param name="_kindId"></param>
+		/// <param name="_parentUid"></param>
+		public ClientXObjectDescriptor(ClientXObject<TKind> _newBorn, AbstractXClient<TKind> _client, int _kindId, Guid _parentUid)
 			: this(_newBorn.Uid, _client, _parentUid)
 		{
 			var child = _newBorn as IClientXChildObject<TKind>;
@@ -45,19 +49,36 @@ namespace XTransport.Client
 			m_instances.Add(_newBorn.GetType(), _newBorn);
 			m_instancesCounter.Add(_newBorn, 1);
 			Kind = _kindId;
-			ActualFrom = _generation;
+			ResetState();
 			_newBorn.Changed += XObjectChanged;
 			var changes = _newBorn.GetChanges();
 			if (changes.Any())
 			{
-				Report = new ServerXReport(_newBorn.Uid, _newBorn.GetChanges(), 0, 0, 0,
-										   m_client.KindToIntInternal(_newBorn.Kind));
+				Report = new ServerXReport(_newBorn.Uid, _newBorn.GetChanges(), 0, m_client.KindToIntInternal(_newBorn.Kind), EState.SINGLE);
 			}
 		}
 
-		public uint ActualFrom { get; set; }
-		public uint Stored { get; set; }
-		public uint LastModified { get; set; }
+		private EState m_state;
+		public EState State
+		{
+			get
+			{
+				if(m_state==EState.UNKNOWN)
+				{
+					m_state = m_instances.Values.SelectMany(_clientXObject => _clientXObject.GetChildUids()).Aggregate(m_report == null ? EState.SINGLE : Report.State, (_current, _uid) => _current | m_client.GetDescriptor(_uid).State);
+				}
+				return m_state;
+			}
+		}
+
+		public void ResetState()
+		{
+			m_state = EState.UNKNOWN;
+			if (!m_collectionOwnerUid.Equals(Guid.Empty))
+			{
+				m_client.ClearState(m_collectionOwnerUid);
+			}
+		}
 
 		private int Kind
 		{
@@ -89,12 +110,7 @@ namespace XTransport.Client
 			set
 			{
 				m_report = value;
-				if (m_report != null)
-				{
-					LastModified = m_report.LastModification;
-					Stored = m_report.StoredActualFrom;
-					ActualFrom = m_report.ActualFrom;
-				}
+				ResetState();
 			}
 		}
 
@@ -103,32 +119,19 @@ namespace XTransport.Client
 			get { return m_instances.Count == 0; }
 		}
 
-		private State CurrentCurrentState
-		{
-			get
-			{
-				if (m_currentState == null)
-				{
-					Debug.WriteLine("CREATE STATE");
-					m_currentState = new State(this);
-				}
-				return m_currentState;
-			}
-		}
-
 		public bool IsUndoEnabled
 		{
-			get { return CurrentCurrentState.IsUndoEnabled; }
+			get { return State.HasFlag(EState.UNDO_ABLE); }
 		}
 
 		public bool IsRedoEnabled
 		{
-			get { return CurrentCurrentState.IsRedoEnabled; }
+			get { return State.HasFlag(EState.REDO_ABLE); }
 		}
 
 		public bool IsRevertEnabled
 		{
-			get { return CurrentCurrentState.IsRevertEnabled; }
+			get { return State.HasFlag(EState.REVERT_ABLE); }
 		}
 
 		public Guid Uid { get; private set; }
@@ -224,12 +227,10 @@ namespace XTransport.Client
 
 		private void XObjectChanged(IClientXObject<TKind> _xObject)
 		{
-			m_currentState = null;
-
 			var xObject = ((ClientXObject<TKind>) _xObject);
 			var changes = xObject.GetChanges().ToArray();
 
-			var xReport = new XReport(_xObject.Uid, changes, Kind);
+			var xReport = new XReport(_xObject.Uid, changes, Kind, EState.UNDO_ABLE|EState.REVERT_ABLE);
 
 			Report.MergeChanges(xReport);
 			foreach (var obj in m_instances.Values)
@@ -241,14 +242,13 @@ namespace XTransport.Client
 					obj.Changed += XObjectChanged;
 				}
 			}
-			ActualFrom = LastModified = m_client.ClientObjectChanged(xReport);
-			ClearState();
+			
+			m_client.ClientObjectChanged(xReport);
 		}
 
 		public void ServerObjectSaved(bool _local)
 		{
 			Report = m_client.GetReport(Kind, Uid);
-
 			if (_local)
 			{
 				foreach (var obj in m_instances.Values)
@@ -265,31 +265,23 @@ namespace XTransport.Client
 					obj.Changed += XObjectChanged;
 				}
 			}
-			//Stored = Report.StoredActualFrom;
-			ClearState();
 		}
 
 		public void Revert()
 		{
-			ActualFrom = LastModified = Stored;
 			foreach (var obj in m_instances.Values)
 			{
 				obj.Changed -= XObjectChanged;
 				obj.Revert();
 				obj.Changed += XObjectChanged;
 			}
-			ClearState();
+			Report = null;
 		}
 
-		public void Undo(UndoXReport _xReport)
+		public void Undo(UndoXReport _report)
 		{
-			Debug.WriteLine("UNDO\t" + _xReport.ActualFrom + "\tUID\t" + _xReport.Uid + "\t[" + _xReport.Kind + "]");
-			if (_xReport.ActualFrom == ActualFrom) return;
-			if (_xReport.NeedRevert)
+			if (_report.NeedRevert)
 			{
-				Debug.WriteLine("REVERT\tActualFrom=\t" + Stored);
-				// Have no undo info, just revert existing changes
-				ActualFrom = Stored;
 				foreach (var obj in m_instances.Values)
 				{
 					obj.Changed -= XObjectChanged;
@@ -299,37 +291,25 @@ namespace XTransport.Client
 			}
 			else
 			{
-				Debug.WriteLine("APPLY\tActualFrom=\t" + _xReport.ActualFrom);
-				ActualFrom = _xReport.ActualFrom;
 				foreach (var obj in m_instances.Values)
 				{
 					obj.Changed -= XObjectChanged;
-					obj.ApplyChanges(_xReport, false);
+					obj.ApplyChanges(_report, false);
 					obj.Changed += XObjectChanged;
 				}
 			}
-			ClearState();
+			Report = _report;
 		}
 
 		public void Redo(ServerXReport _report)
 		{
-			ActualFrom = _report.ActualFrom;
 			foreach (var obj in m_instances.Values)
 			{
 				obj.Changed -= XObjectChanged;
 				obj.ApplyChanges(_report, false);
 				obj.Changed += XObjectChanged;
 			}
-			ClearState();
-		}
-
-		public void ClearState()
-		{
-			m_currentState = null;
-			if (!m_collectionOwnerUid.Equals(Guid.Empty))
-			{
-				m_client.ClearState(m_collectionOwnerUid);
-			}
+			Report = _report;
 		}
 
 		public void AddedToCollection(ClientXObject<TKind> _child, IEnumerable<int> _addAs)
@@ -350,32 +330,5 @@ namespace XTransport.Client
 				instance.RemovedFromCollection(_child);
 			}
 		}
-
-		#region Nested type: State
-
-		private class State
-		{
-			public State(ClientXObjectDescriptor<TKind> _descriptor)
-			{
-				IsUndoEnabled = _descriptor.ActualFrom > _descriptor.Stored;
-				IsRedoEnabled = _descriptor.ActualFrom < _descriptor.LastModified;
-				IsRevertEnabled = _descriptor.ActualFrom > _descriptor.Stored;
-				foreach (var clientXObjectInternal in _descriptor.m_instances.Values)
-				{
-					foreach (var uid in clientXObjectInternal.GetChildUids())
-					{
-						if (!IsUndoEnabled) IsUndoEnabled = _descriptor.m_client.GetIsUndoEnabled(uid);
-						if (!IsRedoEnabled) IsRedoEnabled = _descriptor.m_client.GetIsRedoEnabled(uid);
-						if (!IsRevertEnabled) IsRevertEnabled = _descriptor.m_client.GetIsRevertEnabled(uid);
-					}
-				}
-			}
-
-			public bool IsUndoEnabled { get; private set; }
-			public bool IsRedoEnabled { get; private set; }
-			public bool IsRevertEnabled { get; private set; }
-		}
-
-		#endregion
 	}
 }
