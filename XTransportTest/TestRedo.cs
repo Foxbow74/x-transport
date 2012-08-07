@@ -14,7 +14,6 @@ namespace XTransportTest
 			var a = cl.GetRoot<Root>().AItems.First();
 			var init = a.Value;
 			a.Value = 10;
-			Wait(1);
 			a.Value = 20;
 			cl.Undo(a.Uid);
 			Assert.AreEqual(10, a.Value);
@@ -33,7 +32,6 @@ namespace XTransportTest
 			var a = cl.GetRoot<Root>().AItems.First();
 			var init = a.Value;
 			a.Value = 10;
-			Wait(1);
 			a.Value = init;
 			cl.Undo(a.Uid);
 			Assert.AreEqual(10, a.Value);
@@ -52,7 +50,6 @@ namespace XTransportTest
 			var root = cl.GetRoot<Root>();
 			var cnt = root.BItems.Count;
 			root.BItems.Add(new B {Value = "A"});
-			Wait(1);
 			root.BItems.Last().Value = "AA";
 			cl.Undo(root.Uid);
 			Assert.AreEqual("A", root.BItems.Last().Value);
@@ -90,7 +87,6 @@ namespace XTransportTest
 
 			var cnt = root.AItems.Count;
 			root.AItems.Add(new A {Value = 5});
-			Wait(1);
 			root.AItems.Last().Value = 10;
 			cl.Undo(root.Uid);
 			Assert.AreEqual(5, root.AItems.Last().Value);

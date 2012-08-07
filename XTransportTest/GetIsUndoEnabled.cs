@@ -48,7 +48,6 @@ namespace XTransportTest
 			a.Value = 10;
 			Assert.AreEqual(true, cl.GetIsUndoEnabled(a.Uid));
 			cl.Save(a.Uid);
-			Wait(100, () => cl.GetIsUndoEnabled(a.Uid));
 			Assert.AreEqual(false, cl.GetIsUndoEnabled(a.Uid));
 		}
 
@@ -60,7 +59,6 @@ namespace XTransportTest
 			root.AItems.Add(new Avm {Value = 99});
 			Assert.AreEqual(true, cl.GetIsUndoEnabled(root.Uid));
 			cl.Save(root.Uid);
-			Wait(1000, () => root.IsDirty);
 			Assert.AreEqual(false, cl.GetIsUndoEnabled(root.Uid));
 		}
 
@@ -69,12 +67,9 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 			var root = cl.GetRoot<RootVM>();
-			Wait(100);
 			root.AItems.Remove(root.AItems.First());
-			Wait(100);
 			Assert.AreEqual(true, cl.GetIsUndoEnabled(root.Uid));
 			cl.Save(root.Uid);
-			Wait(100, () => cl.GetIsUndoEnabled(root.Uid));
 			Assert.AreEqual(false, cl.GetIsUndoEnabled(root.Uid));
 		}
 	}
