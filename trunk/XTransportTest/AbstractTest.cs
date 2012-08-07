@@ -29,11 +29,6 @@ namespace XTransportTest
 		{
 		}
 
-		protected static void Wait(int _times)
-		{
-			Thread.Sleep(_times);
-		}
-
 		protected static void Wait(int _maxTimes, Func<bool> _while)
 		{
 			var i = 0;

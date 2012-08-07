@@ -131,7 +131,6 @@ namespace XTransportTest
 			                             		mre.Set();
 			                             	});
 			Assert.AreEqual(true, mre.WaitOne(100));
-			Wait(100);
 			cl1.Revert(parentVM1.Uid);
 
 			Wait(100, () => parentVM2.List.Count != parentVM1.ObsCol.Count);

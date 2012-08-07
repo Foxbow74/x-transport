@@ -43,7 +43,6 @@ namespace XTransportTest
 			var general = cl.GetRoot<RootVM>();
 			general.AItems.Remove(general.AItems.First());
 			cl.Save(general.Uid);
-			Wait(200);
 			cl1.Revert(generalMirror.Uid);
 			var waitCounter = 10;
 			while (general.AItems.Count != generalMirror.AItems.Count && waitCounter-- > 0)

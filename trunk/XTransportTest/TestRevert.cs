@@ -45,10 +45,8 @@ namespace XTransportTest
 			var a = cl1.GetRoot<Root>().AItems.First();
 			a.Value = 10;
 			cl1.Save(a.Uid);
-			Wait(100, () => a.IsDirty);
 			a.Value = 20;
 			cl1.Revert(a.Uid);
-			Wait(100, () => a.Value == 20);
 			Assert.AreEqual(10, a.Value);
 		}
 	}

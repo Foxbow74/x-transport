@@ -75,11 +75,9 @@ namespace XTransportTest
 			var cnt = rt1.AItems.Count;
 
 			rt1.AItems.Remove(rt1.AItems.First());
-			Wait(1);
 			rt2.AItems.Remove(rt2.AItems.First());
-			Wait(1);
 			cl1.Save(rt1.Uid);
-			Wait(1000, () => rt1.IsDirty);
+			Wait(100, () => rt1.IsDirty);
 			cl2.Undo(rt2.Uid);
 			Assert.AreEqual(cnt, rt2.AItems.Count);
 			cl2.Undo(rt2.Uid);
@@ -98,11 +96,9 @@ namespace XTransportTest
 			var aValue = rt1.AItems.Last().Value;
 
 			rt1.AItems.Add(new A {Value = 100});
-			Wait(1);
 			rt2.AItems.Add(new A {Value = 200});
-			Wait(1);
 			cl1.Save(rt1.Uid);
-			Wait(1000, () => rt1.IsDirty);
+			Wait(100, () => rt1.IsDirty);
 			cl2.Undo(rt2.Uid);
 			Assert.AreEqual(aValue, rt2.AItems.Last().Value);
 			cl2.Undo(rt2.Uid);
