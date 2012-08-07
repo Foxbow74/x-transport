@@ -14,12 +14,13 @@ namespace XTransport.Server
 		private readonly Dictionary<int, int> m_xValueOldIds = new Dictionary<int, int>();
 		private readonly Dictionary<int, IServerXValue> m_xValues = new Dictionary<int, IServerXValue>();
 
-		public ServerXObjectContainer(int _kind, Guid _uid, DateTime _validFrom)
+		public ServerXObjectContainer(Guid _uid, AbstractXServer.ObjectDescriptor _descriptor)
 		{
-			m_kind = _kind;
+			m_kind = _descriptor.Kind;
 			Uid = _uid;
-			Stored = 1;
-			ValidFrom = _validFrom;
+			ValidFrom = _descriptor.ValidFrom;
+			ValidTill = _descriptor.ValidTill;
+			Stored = _descriptor.ValidTill.HasValue ? (uint)0 : (uint)1;
 		}
 
 		public ServerXObjectContainer(int _kind, Guid _uid)
@@ -27,12 +28,13 @@ namespace XTransport.Server
 			m_kind = _kind;
 			Uid = _uid;
 			Stored = 0;
+			ValidTill = null;
 			ValidFrom = default(DateTime);
 		}
 
 		public DateTime ValidFrom { get; set; }
+		public DateTime? ValidTill { get; set; }
 		public uint Stored { get; set; }
-
 		public int StoredId { get; set; }
 
 		public Guid Uid { get; internal set; }
@@ -117,7 +119,6 @@ namespace XTransport.Server
 				}
 				reports.Clear();
 				m_currentVersion[_sessionId] = -1;
-				//Stored = changes.ActualFrom;
 				ValidFrom = _now;
 
 				foreach (var pair in m_changes)
@@ -328,7 +329,6 @@ namespace XTransport.Server
 		internal ServerXReport GetReport(SessionId _sessionId)
 		{
 			var actualFrom = Stored;
-			var lastModification = Stored;
 			List<XReport> reports;
 			var state = EState.SINGLE;
 
@@ -348,8 +348,6 @@ namespace XTransport.Server
 					state |= EState.UNDO_ABLE|EState.REVERT_ABLE;
 					if (last != actual) state |= EState.REDO_ABLE;
 
-
-					lastModification = last.ActualFrom;
 					var changes = actual;
 					items.AddRange(changes.Items);
 					actualFrom = changes.ActualFrom;
@@ -409,6 +407,12 @@ namespace XTransport.Server
 				return m_changes[_sessionId][current].ActualFrom;
 			}
 			return Stored;
+		}
+
+		public void Deleted(DateTime _now)
+		{
+			Stored = 0;
+			ValidTill = _now;
 		}
 	}
 }

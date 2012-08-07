@@ -6,10 +6,11 @@ namespace XTransport.Server.Storage
 	{
 		public Guid Parent { get; set; }
 		public int Field { get; set; }
+		public DateTime? ValidTill { get; set; }
 
 		public override string ToString()
 		{
-			return "\t" + Kind + "\t" + Uid + "\t" + Parent + "\t" + Field;
+			return " \t" + Kind + " \t" + Uid + " \t" + Parent + " \t" + Field;
 		}
 	}
 }

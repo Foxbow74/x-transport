@@ -9,7 +9,9 @@ namespace XTransport.Server.Storage
 		void Delete(Guid _uid, int _field, DateTime _now);
 
 		IEnumerable<StorageRootObject> LoadRoot();
-		DateTime LoadObjectParameters(Guid _uid, out int _kind);
+		
+		AbstractXServer.ObjectDescriptor LoadObjectCharacteristics(Guid _uid, DateTime _now = default(DateTime));
+
 		IEnumerable<IStorageRecord> LoadObject(Guid _uid, DateTime _now);
 
 		int InsertMain(Guid _uid, int _kind, DateTime _now, Guid _parent = default(Guid), int? _field = null);

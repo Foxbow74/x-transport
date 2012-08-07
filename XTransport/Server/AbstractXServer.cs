@@ -17,6 +17,7 @@ namespace XTransport.Server
 		private readonly Dictionary<Guid, Guid> m_parents = new Dictionary<Guid, Guid>();
 
 		private readonly Dictionary<SessionId, Session> m_sessions = new Dictionary<SessionId, Session>();
+		private uint m_generation = 2;
 
 		private ServerXObjectRoot m_root;
 
@@ -81,10 +82,10 @@ namespace XTransport.Server
 			{
 				using (var st = CreateStorage())
 				{
-					int kind;
-					var vfrom = st.LoadObjectParameters(_uid, out kind);
-					_xObject = new ServerXObjectContainer(kind, _uid, vfrom);
-					foreach (var record in st.LoadObject(_uid, DateTime.Now))
+					var descriptor = st.LoadObjectCharacteristics(_uid);
+					_xObject = new ServerXObjectContainer(_uid, descriptor);
+					var records = st.LoadObject(_uid, DateTime.Now).ToList();
+					foreach (var record in records)
 					{
 						if (record is StorageChild)
 						{
@@ -107,8 +108,6 @@ namespace XTransport.Server
 			}
 			return _xObject;
 		}
-
-		private uint m_generation = 2;
 
 		public uint NextGeneration()
 		{
@@ -298,6 +297,11 @@ namespace XTransport.Server
 
 		internal void Delete(IStorage _storage, Guid _uid, int _field, DateTime _now)
 		{
+			ServerXObjectContainer objectContainer;
+			if (m_objects.TryGetValue(_uid, out objectContainer))
+			{
+				objectContainer.Deleted(_now);
+			}
 			_storage.Delete(_uid, _field, _now);
 		}
 
@@ -314,5 +318,40 @@ namespace XTransport.Server
 			}
 			return result;
 		}
+
+		#region Nested type: ObjectDescriptor
+
+		public struct ObjectDescriptor
+		{
+			private readonly int m_kind;
+
+			private readonly DateTime m_validFrom;
+
+			private readonly DateTime? m_validTill;
+
+			public ObjectDescriptor(int _kind, DateTime _validFrom, DateTime? _validTill)
+			{
+				m_kind = _kind;
+				m_validFrom = _validFrom;
+				m_validTill = _validTill;
+			}
+
+			public int Kind
+			{
+				get { return m_kind; }
+			}
+
+			public DateTime ValidFrom
+			{
+				get { return m_validFrom; }
+			}
+
+			public DateTime? ValidTill
+			{
+				get { return m_validTill; }
+			}
+		}
+
+		#endregion
 	}
 }
