@@ -10,7 +10,7 @@ namespace XTransport.Server.Storage
 
 		public override string ToString()
 		{
-			return Kind + "\t" + Uid;
+			return Kind + " \t" + Uid;
 		}
 	}
 }

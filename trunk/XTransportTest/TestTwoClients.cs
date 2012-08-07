@@ -57,10 +57,35 @@ namespace XTransportTest
 			Assert.AreNotEqual(rt1.RefItems.First().Ref, rt1.AItems.ToList()[1]);
 			rt1.RefItems.First().Ref = rt1.AItems.ToList()[1];
 			rt2.RefItems.First().Ref = rt2.AItems.ToList()[1];
-			cl1.Save(rt1.Uid);
-			cl2.Undo(rt2.Uid);
+			cl1.Save(rt1);
+			cl2.Undo(rt2);
 			Assert.AreEqual(rt2.RefItems.First().Ref.Uid, rt2.AItems.First().Uid);
 			Assert.AreEqual(rt2.RefItems.First().Ref, rt2.AItems.First());
+		}
+
+
+		[TestMethod]
+		public void SaveAndUndo2()
+		{
+			var cl1 = new TstClient();
+			var rt1 = cl1.GetRoot<Root>();
+
+			var cl2 = new TstClient();
+			var rt2 = cl2.GetRoot<Root>();
+
+			var a1 = rt1.AItems.First();
+			var a2 = rt2.AItems.First();
+
+			var val = a1.Value;
+			a2.Value = val + 2;
+			a1.Value = val + 1;
+			cl1.Save(a1);
+			Assert.AreEqual(val + 2, a2.Value);
+			cl2.Undo(a2);
+			Assert.AreEqual(val, a2.Value);
+			cl2.Undo(a2);
+			Assert.AreEqual(val + 1, a2.Value);
+			Assert.IsFalse(cl2.GetIsUndoEnabled(a2.Uid));
 		}
 
 		[TestMethod]

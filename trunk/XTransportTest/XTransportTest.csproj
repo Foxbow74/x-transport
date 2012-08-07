@@ -80,6 +80,7 @@
     <Compile Include="Server\Uploader.cs" />
     <Compile Include="TestChilds.cs" />
     <Compile Include="TestClient.cs" />
+    <Compile Include="TestDelete.cs" />
     <Compile Include="TestGetIsRedoEnabled.cs" />
     <Compile Include="TestLists.cs" />
     <Compile Include="TestRedo.cs" />

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Threading;
 using Community.CsharpSqlite.SQLiteClient;
+using XTransport.Server;
 using XTransport.Server.Storage;
 
 namespace XTransport
@@ -57,15 +59,14 @@ namespace XTransport
 
 		private void CreateTablesIfNotExists()
 		{
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS main ( id INTEGER PRIMARY KEY AUTOINCREMENT, uid GUID, parent GUID, kind INTEGER, field INTEGER, vfrom DATETIME NOT NULL, vtill DATETIME)");
-
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS ints ( id INTEGER NOT NULL, value INTEGER)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS guids ( id INTEGER NOT NULL, value GUID)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS dates ( id INTEGER NOT NULL, value DATETIME)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS strings ( id INTEGER NOT NULL, value TEXT)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS doubles ( id INTEGER NOT NULL, value REAL)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS decimals ( id INTEGER NOT NULL, value TEXT)");
-			ExecuteNonQuery("CREATE TABLE IF NOT EXISTS blobs ( id INTEGER NOT NULL, value BLOB)");
+			CreateCommand("CREATE TABLE IF NOT EXISTS main ( id INTEGER PRIMARY KEY AUTOINCREMENT, uid GUID, parent GUID, kind INTEGER, field INTEGER, vfrom DATETIME NOT NULL, vtill DATETIME)").ExecuteNonQuery();
+			CreateCommand("CREATE TABLE IF NOT EXISTS ints ( id INTEGER NOT NULL, value INTEGER)").ExecuteNonQuery();
+			CreateCommand("CREATE TABLE IF NOT EXISTS guids ( id INTEGER NOT NULL, value GUID)").ExecuteNonQuery();
+			CreateCommand("CREATE TABLE IF NOT EXISTS dates ( id INTEGER NOT NULL, value DATETIME)").ExecuteNonQuery();
+			CreateCommand("CREATE TABLE IF NOT EXISTS strings ( id INTEGER NOT NULL, value TEXT)").ExecuteNonQuery();
+			CreateCommand("CREATE TABLE IF NOT EXISTS doubles ( id INTEGER NOT NULL, value REAL)").ExecuteNonQuery();
+			CreateCommand("CREATE TABLE IF NOT EXISTS decimals ( id INTEGER NOT NULL, value TEXT)").ExecuteNonQuery();
+			CreateCommand("CREATE TABLE IF NOT EXISTS blobs ( id INTEGER NOT NULL, value BLOB)").ExecuteNonQuery();
 		}
 		#region IStorage Members
 
@@ -85,7 +86,7 @@ namespace XTransport
 
 		public void Delete(Guid _uid, int _field, DateTime _now)
 		{
-			ExecuteNonQuery("UPDATE main SET vtill=@till WHERE parent=@uid"
+			ExecuteNonQuery("UPDATE main SET vtill=@till WHERE uid=@uid"
 			                , new SqliteParameter("@uid", _uid)
 							, new SqliteParameter("@till", _now));
 		}
@@ -95,22 +96,18 @@ namespace XTransport
 		{
 			if (_parent.Equals(default(Guid)))
 			{
-				ExecuteInsertOrUpdate(CreateCommand("INSERT INTO main (uid, kind, vfrom) VALUES (@uid, @kind, @from)",
+				return ExecuteInsertOrUpdate("INSERT INTO main (uid, kind, vfrom) VALUES (@uid, @kind, @from)",
 				                                    new SqliteParameter("@uid", _uid),
 				                                    new SqliteParameter("@kind", _kind),
-				                                    new SqliteParameter("@from", _now)));
+				                                    new SqliteParameter("@from", _now));
 			}
-			else
-			{
-				ExecuteInsertOrUpdate(CreateCommand("INSERT INTO main (uid, parent, kind, field, vfrom) VALUES (@uid, @parent, @kind, @field, @from)",
-					              new SqliteParameter("@uid", _uid),
-					              new SqliteParameter("@parent", _parent),
-					              new SqliteParameter("@kind", _kind),
-					              new SqliteParameter("@field", _field),
-					              new SqliteParameter("@from", _now)));
-			}
-			var id = m_connection.LastInsertRowId;
-			return id;
+			
+			return ExecuteInsertOrUpdate("INSERT INTO main (uid, parent, kind, field, vfrom) VALUES (@uid, @parent, @kind, @field, @from)",
+			                             new SqliteParameter("@uid", _uid),
+			                             new SqliteParameter("@parent", _parent),
+			                             new SqliteParameter("@kind", _kind),
+			                             new SqliteParameter("@field", _field),
+			                             new SqliteParameter("@from", _now));
 		}
 
 		public IDisposable CreateTransaction()
@@ -144,15 +141,29 @@ namespace XTransport
 			}
 		}
 
-		public DateTime LoadObjectParameters(Guid _uid, out int _kind)
+		public AbstractXServer.ObjectDescriptor LoadObjectCharacteristics(Guid _uid, DateTime _now = default(DateTime))
 		{
-			using (var rdr = CreateCommand("select kind, vfrom from main where uid=@uid", new SqliteParameter("@uid", _uid)).ExecuteReader(CommandBehavior.CloseConnection))
+			if(_now==default(DateTime))
 			{
-				while (rdr.Read())
+				using (var rdr = CreateCommand("select kind, vfrom, vtill from main where uid=@uid", new SqliteParameter("@uid", _uid)).ExecuteReader(CommandBehavior.CloseConnection))
 				{
-					_kind = (int) rdr[0];
-					return (DateTime) rdr[1];
+					while (rdr.Read())
+					{
+						var result = new AbstractXServer.ObjectDescriptor((int)rdr[0], (DateTime)rdr[1], (DateTime?)rdr[2]);
+						return result;
+					}
 				}
+			}
+			else
+			{
+				using (var rdr = CreateCommand("select kind, vfrom, vtill from main where uid=@uid and @now>=vfrom and @now<vtill", new SqliteParameter("@uid", _uid), new SqliteParameter("@now", _now)).ExecuteReader(CommandBehavior.CloseConnection))
+				{
+					while (rdr.Read())
+					{
+						var result = new AbstractXServer.ObjectDescriptor((int)rdr[0], (DateTime)rdr[1], (DateTime?)rdr[2]);
+						return result;
+					}
+				}				
 			}
 			throw new ApplicationException("Object not found UID=" + _uid);
 		}
@@ -161,10 +172,7 @@ namespace XTransport
 		{
 			var vuids = new Dictionary<int, Guid>();
 			var vfields = new Dictionary<int, int>();
-			using (
-				var rdr =
-					CreateCommand("select * from main where parent=@parent AND vfrom<=@now AND (vtill IS NULL OR vtill>@now)",
-					              new SqliteParameter("@parent", _uid), new SqliteParameter("@now", _now)).ExecuteReader(
+			using (var rdr = CreateCommand("select * from main where parent=@parent AND vfrom<=@now AND (vtill IS NULL OR vtill>@now)", new SqliteParameter("@parent", _uid), new SqliteParameter("@now", _now)).ExecuteReader(
 					              	CommandBehavior.CloseConnection))
 			{
 				while (rdr.Read())
@@ -173,6 +181,7 @@ namespace XTransport
 					var kind = rdr[MF_KIND];
 					var uid = rdr[MF_UID];
 					var vform = rdr[MF_FROM];
+					var vtill = rdr[MF_TILL];
 
 
 					if (kind != null)
@@ -183,7 +192,8 @@ namespace XTransport
 						             		Uid = new Guid((string) uid),
 						             		Parent = new Guid((string) parent),
 						             		Field = (int) rdr[MF_FIELD],
-						             		ValidFrom = (DateTime) vform,
+											ValidFrom = (DateTime)vform,
+											ValidTill = (DateTime?)vtill,
 						             	};
 					}
 					else
@@ -234,14 +244,11 @@ namespace XTransport
 				ExecuteInsertOrUpdate("UPDATE main SET vtill=@till WHERE id=@lastId", new SqliteParameter("@till", till),
 				                      new SqliteParameter("@lastId", _lastId.Value));
 			}
-			var id = ExecuteInsertOrUpdate(CreateCommand("INSERT INTO main (parent, field, vfrom) VALUES (@uid, @field, @from)",
+			var id = ExecuteInsertOrUpdate("INSERT INTO main (parent, field, vfrom) VALUES (@uid, @field, @from)",
 			                                             new SqliteParameter("@uid", _uid), new SqliteParameter("@field", _field),
-			                                             new SqliteParameter("@from", till)));
-			using (var cmd = CreateCommand(string.Format("INSERT INTO {0} (id, value) VALUES ({1}, @value)", _tbl, id)))
-			{
-				cmd.Parameters.Add(new SqliteParameter("@value", _value));
-				ExecuteInsertOrUpdate(cmd);
-			}
+			                                             new SqliteParameter("@from", till));
+
+			ExecuteInsertOrUpdate(string.Format("INSERT INTO {0} (id, value) VALUES ({1}, @value)", _tbl, id), new SqliteParameter("@value", _value));
 			return id;
 		}
 
@@ -260,54 +267,52 @@ namespace XTransport
 			}
 		}
 
-		private int ExecuteInsertOrUpdate(SqliteCommand _cmd)
+		private int ExecuteInsertOrUpdate(string _text = null, params SqliteParameter[] _parameters)
 		{
-			ExecuteNonQuery(_cmd);
-			return _cmd.LastInsertRowID();
+			using (var cmd = CreateCommand(_text, _parameters))
+			{
+				ExecuteNonQuery(cmd);
+				return cmd.LastInsertRowID();
+			}
 		}
 
-		private void ExecuteNonQuery(SqliteCommand _cmd)
+		private int ExecuteNonQuery(SqliteCommand _cmd)
 		{
-			_cmd.ExecuteNonQuery();
+			var affected = _cmd.ExecuteNonQuery();
+			//Debug.WriteLine(affected + "\t" + _cmd.CommandText);
+			//foreach (SqliteParameter parameter in _cmd.Parameters)
+			//{
+			//    Debug.WriteLine("\t" + parameter.ParameterName + "\t" + parameter.Value);
+			//}
 			if (_cmd.GetLastErrorCode() != 0)
 			{
 				RollBack();
 				throw new ApplicationException(string.Format("Can't insert:{0}", _cmd.GetLastError()));
 			}
+			return affected;
 		}
-
-		private void ExecuteInsertOrUpdate(string _text = null, params SqliteParameter[] _parameters)
-		{
-			using (var cmd = CreateCommand(_text, _parameters))
-			{
-				ExecuteInsertOrUpdate(cmd);
-			}
-		}
-
 		public int InsertMain(UplodableObject _uplodableObject, Guid _parent = default(Guid), int? _field = null)
 		{
 			var now = DateTime.Now;
-
+			int result;
 			if (_parent.Equals(default(Guid)))
 			{
-				ExecuteInsertOrUpdate(CreateCommand("INSERT INTO main (uid, kind, vfrom) VALUES (@uid, @kind, @from)",
+				result = ExecuteInsertOrUpdate("INSERT INTO main (uid, kind, vfrom) VALUES (@uid, @kind, @from)",
 				                                    new SqliteParameter("@uid", _uplodableObject.Uid),
 				                                    new SqliteParameter("@kind", _uplodableObject.Kind),
-				                                    new SqliteParameter("@from", now)));
+				                                    new SqliteParameter("@from", now));
 			}
 			else
 			{
-				ExecuteInsertOrUpdate(
-					CreateCommand("INSERT INTO main (uid, parent, kind, field, vfrom) VALUES (@uid, @parent, @kind, @field, @from)",
+				result = ExecuteInsertOrUpdate("INSERT INTO main (uid, parent, kind, field, vfrom) VALUES (@uid, @parent, @kind, @field, @from)",
 					              new SqliteParameter("@uid", _uplodableObject.Uid),
 					              new SqliteParameter("@parent", _parent),
 					              new SqliteParameter("@kind", _uplodableObject.Kind),
 					              new SqliteParameter("@field", _field),
-					              new SqliteParameter("@from", now)));
+					              new SqliteParameter("@from", now));
 			}
-			var id = m_connection.LastInsertRowId;
 			_uplodableObject.SaveFields(this, now);
-			return id;
+			return result;
 		}
 
 		#region Nested type: Transaction

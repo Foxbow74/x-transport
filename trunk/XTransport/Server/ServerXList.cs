@@ -81,7 +81,7 @@ namespace XTransport.Server
 #if DEBUG
 			if (m_list.Contains(_uid))
 			{
-				throw new ApplicationException();
+				throw new ApplicationException("Uid is not unique");
 			}
 #endif
 			m_list.Add(_uid);

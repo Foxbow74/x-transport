@@ -15,7 +15,6 @@ namespace XTransport.Client
 
 		private int m_kind;
 		private bool m_notInitialized = true;
-		private Guid m_collectionOwnerUid;
 		private ServerXReport m_report;
 
 		public ClientXObjectDescriptor(Guid _uid, AbstractXClient<TKind> _client, Guid _collectionOwnerUid)
@@ -26,7 +25,7 @@ namespace XTransport.Client
 				throw new NotImplementedException("??? why");
 			}
 #endif
-			m_collectionOwnerUid = _collectionOwnerUid;
+			CollectionOwnerUid = _collectionOwnerUid;
 			Uid = _uid;
 			m_client = _client;
 		}
@@ -74,9 +73,9 @@ namespace XTransport.Client
 		public void ResetState()
 		{
 			m_state = EState.UNKNOWN;
-			if (!m_collectionOwnerUid.Equals(Guid.Empty))
+			if (!CollectionOwnerUid.Equals(Guid.Empty))
 			{
-				m_client.ClearState(m_collectionOwnerUid);
+				m_client.ClearState(CollectionOwnerUid);
 			}
 		}
 
@@ -136,6 +135,8 @@ namespace XTransport.Client
 
 		public Guid Uid { get; private set; }
 
+		public Guid CollectionOwnerUid { get; private set; }
+
 		public bool ContainsInstanceOf<TO>(out TO _result) where TO : ClientXObject<TKind>
 		{
 			ClientXObject<TKind> value;
@@ -188,7 +189,7 @@ namespace XTransport.Client
 				var child = result as IClientXChildObject<TKind>;
 				if(child!=null)
 				{
-					child.SetParent(m_collectionOwnerUid);
+					child.SetParent(CollectionOwnerUid);
 				}
 				result.SetUid(Report.Uid);
 				result.SetClientInternal(m_client);
