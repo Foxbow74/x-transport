@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XTransport.Server;
@@ -20,6 +21,7 @@ namespace XTransportTest
 		public void Initialize()
 		{
 			TstServer.DbName = "tst" + (++m_test) + ".db";
+			File.Delete(TstServer.DbName);
 			Uploader.Upload(TstServer.DbName);
 			AbstractXServer.Instance.Reset();
 		}

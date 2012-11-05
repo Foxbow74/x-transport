@@ -19,8 +19,6 @@ namespace XTransport.Client
 				list = InitializeType(GetType());
 			}
 
-			Uid = Guid.NewGuid();
-
 			foreach (var info in list)
 			{
 				IXValueInternal xfield;
@@ -35,6 +33,9 @@ namespace XTransport.Client
 				info.Field.SetValue(this, xfield);
 				m_xValues.Add(info.FieldId, xfield);
 			}
+
+			SetUid(Guid.NewGuid());
+
 			SubscribePersistedValuesChanges();
 		}
 

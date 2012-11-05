@@ -67,6 +67,17 @@ namespace XTransport
 			CreateCommand("CREATE TABLE IF NOT EXISTS doubles ( id INTEGER NOT NULL, value REAL)").ExecuteNonQuery();
 			CreateCommand("CREATE TABLE IF NOT EXISTS decimals ( id INTEGER NOT NULL, value TEXT)").ExecuteNonQuery();
 			CreateCommand("CREATE TABLE IF NOT EXISTS blobs ( id INTEGER NOT NULL, value BLOB)").ExecuteNonQuery();
+
+			CreateCommand("CREATE INDEX IF NOT EXISTS  main_idx1 ON main (id)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  main_idx2 ON main (uid)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  main_idx3 ON main (parent)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  ints_idx ON ints (id)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  strings_idx ON strings (id)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  guids_idx ON guids (id)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  dates_idx ON dates (id)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  doubles_idx ON doubles (id)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  decimals_idx ON decimals (id)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  blobs_idx ON blobs (id)").ExecuteNonQuery();
 		}
 		#region IStorage Members
 
@@ -205,23 +216,21 @@ namespace XTransport
 				}
 			}
 
-			foreach (var table in m_type2Tables)
+			foreach (var vfield in vfields)
 			{
-				using (var rdr = CreateCommand("select * from " + table.Value).ExecuteReader(CommandBehavior.CloseConnection))
+				foreach (var table in m_type2Tables)
 				{
-					while (rdr.Read())
+					var obj = CreateCommand("select value from " + table.Value + " where id=" + vfield.Key).ExecuteScalar();
+					if (obj != null)
 					{
-						var id = (int) rdr[F_ID];
-						int field;
-						if (vfields.TryGetValue(id, out field))
-						{
-							var val = m_tables2Type[table.Key](rdr[VF_VALUE]);
-							val.Id = id;
-							val.Field = field;
-							val.Owner = vuids[id];
-							val.OldId = (int) rdr[F_ID];
-							yield return val;
-						}
+						var id = vfield.Key;
+						var val = m_tables2Type[table.Key](obj);
+						val.Id = vfield.Key;
+						val.Field = vfield.Value;
+						val.Owner = vuids[id];
+						val.OldId = id;
+						yield return val;
+						break;
 					}
 				}
 			}
