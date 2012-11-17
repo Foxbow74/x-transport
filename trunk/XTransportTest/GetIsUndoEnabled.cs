@@ -11,6 +11,7 @@ namespace XTransportTest
 		[TestMethod]
 		public void GetIsUndoEnabledByDefault()
 		{
+
 			var cl = new TstClient();
 			var a = cl.GetRoot<RootVM>().AItems.First();
 			Assert.AreEqual(false, cl.GetIsUndoEnabled(a.Uid));
@@ -21,9 +22,7 @@ namespace XTransportTest
 		{
 			var cl = new TstClient();
 			var a = cl.GetRoot<RootVM>().AItems.First();
-			Assert.AreEqual(false, cl.GetIsUndoEnabled(cl.GetRoot<RootVM>()));
-			a.Value = 30;
-			Assert.AreEqual(true, cl.GetIsUndoEnabled(cl.GetRoot<RootVM>()));
+			Assert.AreEqual(false, cl.GetIsUndoEnabled(a));
 		}
 
 		[TestMethod]
