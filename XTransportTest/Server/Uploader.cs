@@ -29,9 +29,9 @@ namespace XTransportTest.Server
 
 			var childs = new List<UplodableObject>
 					             	{
-										new UplodableObject((int) ETestKind.CHILD) {new UValue<double>("CVAL", 1.0)},
-										new UplodableObject((int) ETestKind.CHILD) {new UValue<double>("CVAL", 2.0)},
-										new UplodableObject((int) ETestKind.CHILD) {new UValue<double>("CVAL", 3.0)}
+										new UplodableObject((int) ETestKind.CHILD) {new UValue<double>("CVAL", 1.1)},
+										new UplodableObject((int) ETestKind.CHILD) {new UValue<double>("CVAL", 2.2)},
+										new UplodableObject((int) ETestKind.CHILD) {new UValue<double>("CVAL", 3.3)}
 					             	};
 
 			var serverSideRefs = new List<UplodableObject>
