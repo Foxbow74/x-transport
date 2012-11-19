@@ -167,7 +167,12 @@ namespace XTransport.Client
 		{
 			if (_factory == null && typeof (TO).IsAbstract)
 			{
-				throw new ApplicationException("Can't instantiate abstract type");
+				var xFactoryAttribute = typeof(TO).GetCustomAttributes(typeof(XFactoryAttribute), true).Cast<XFactoryAttribute>().SingleOrDefault();
+				if (xFactoryAttribute == null)
+				{
+					throw new ApplicationException("Can't instantiate abstract type");
+				}
+				_factory = (IXObjectFactory<TKind>)Activator.CreateInstance(xFactoryAttribute.FactoryType);
 			}
 
 			ClientXObjectDescriptor<TKind> descriptor;
@@ -225,7 +230,6 @@ namespace XTransport.Client
 
 			var kindId = KindToInt(_child.Kind);
 			var report = new XReport(_child.Uid, _child.GetChanges(), kindId, EState.SINGLE);
-
 			m_transport.AddNew(report, m_sessionId, _collectionOwnerUid);
 
 			var descriptor = new ClientXObjectDescriptor<TKind>(_child, this, kindId, _collectionOwnerUid);

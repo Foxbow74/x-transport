@@ -40,7 +40,11 @@ namespace XTransport.Client
 		public T Value
 		{
 			get { return m_object; }
-			set { SetValue(value); }
+			set
+			{
+                if(value==m_object) return;
+			    SetValue(value);
+			}
 		}
 
 		#endregion

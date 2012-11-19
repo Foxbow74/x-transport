@@ -271,7 +271,7 @@ namespace XTransport.Server
 
 		private void OnServerObjectSaved(Guid _uid, SessionId _sessionId)
 		{
-			Console.WriteLine("SAVED:" + _uid);
+			//Console.WriteLine("SAVED:" + _uid);
 			if (m_serverObjectSaved != null)
 			{
 				if (IsAsync)
@@ -353,5 +353,31 @@ namespace XTransport.Server
 		}
 
 		#endregion
+
+        public void Shrink()
+        {
+            IsShrinking = true;
+            var root = Root;
+            foreach (var o in m_objects)
+            {
+                if(o.Value == root)
+                {
+                    continue;
+                }
+                o.Value.PrepareToShrink(m_sessions.First().Key);
+            }
+
+            using (var st = CreateStorage())
+            {
+                using (st.CreateTransaction())
+                {
+                    st.DeleteAll();
+                    SaveInternal(root.Uid, st, DateTime.Now, m_sessions.First().Key);
+                }
+                st.Shrink();
+            }
+        }
+
+        internal bool IsShrinking { get; private set; }
 	}
 }
