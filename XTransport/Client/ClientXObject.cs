@@ -33,9 +33,7 @@ namespace XTransport.Client
 				info.Field.SetValue(this, xfield);
 				m_xValues.Add(info.FieldId, xfield);
 			}
-
 			SetUid(Guid.NewGuid());
-
 			SubscribePersistedValuesChanges();
 		}
 
@@ -235,6 +233,11 @@ namespace XTransport.Client
 			var done = new List<IXValueInternal>();
 			foreach (var item in _report.Items.OrderBy(_item => _item.State))
 			{
+                if(Kind.ToString()=="ALL")
+                {
+                    
+                }
+
 				IXValueInternal value;
 				if (m_xValues.TryGetValue(item.FieldId, out value))
 				{

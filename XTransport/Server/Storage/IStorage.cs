@@ -18,5 +18,7 @@ namespace XTransport.Server.Storage
 
 		IDisposable CreateTransaction();
 		Guid GetCollectionOwnerUid(Guid _uid);
+	    void DeleteAll();
+	    void Shrink();
 	}
 }

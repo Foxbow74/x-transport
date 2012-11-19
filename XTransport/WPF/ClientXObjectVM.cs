@@ -15,7 +15,7 @@ using XTransport.Client;
 namespace XTransport.WPF
 {
 	public abstract class ClientXObjectVM<TKind> : ClientXObject<TKind>, IClientXObjectVM<TKind>,
-	                                               IXClientUserInternal<TKind>
+												   IXClientUserInternal<TKind>
 	{
 		private readonly Dictionary<IXValueInternal, List<PropertyChangedEventArgs>> m_propertyChangedArgs =
 			new Dictionary<IXValueInternal, List<PropertyChangedEventArgs>>();
@@ -37,10 +37,15 @@ namespace XTransport.WPF
 		void IXClientUserInternal<TKind>.SetClient(AbstractXClient<TKind> _client)
 		{
 			Client = _client;
-			m_uiDispatcher = (_client).GetUiDispatcherInternal();
+			SetDispatcher(_client.GetUiDispatcherInternal());
 		}
 
 		#endregion
+
+        public void SetDispatcher(Dispatcher _dispatcher)
+        {
+            m_uiDispatcher = _dispatcher;
+        }
 
 		public Cursor CurrentCursor { get; private set; }
 
@@ -83,7 +88,7 @@ namespace XTransport.WPF
 			var list = (XCollection<TP, TKind>) _field;
 			ReadOnlyObservableCollection<TP> result = null;
 			m_uiDispatcher.Invoke(DispatcherPriority.Background,
-			                      new ThreadStart(delegate { result = list.CreateObservableCollection(); }));
+								  new ThreadStart(delegate { result = list.CreateObservableCollection(); }));
 			return result;
 		}
 
@@ -230,7 +235,7 @@ namespace XTransport.WPF
 
 					// Just to be sure
 					if (!m_isInDesignMode.Value &&
-					    Process.GetCurrentProcess().ProcessName.StartsWith("devenv", StringComparison.Ordinal))
+						Process.GetCurrentProcess().ProcessName.StartsWith("devenv", StringComparison.Ordinal))
 					{
 						m_isInDesignMode = true;
 					}

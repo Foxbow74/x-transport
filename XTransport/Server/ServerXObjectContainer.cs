@@ -14,6 +14,24 @@ namespace XTransport.Server
 		private readonly Dictionary<int, int> m_xValueOldIds = new Dictionary<int, int>();
 		private readonly Dictionary<int, IServerXValue> m_xValues = new Dictionary<int, IServerXValue>();
 
+        internal void PrepareToShrink(SessionId _sessionId)
+	    {
+            if (!ValidTill.HasValue)
+            {
+                var report = GetReport(_sessionId);
+
+                //m_changes.Clear();
+                m_currentVersion.Clear();
+
+                m_currentVersion[_sessionId] = 0;
+                m_changes[_sessionId].Add(report);
+
+                m_xValueOldIds.Clear();
+                Stored = 0;
+                StoredId = 0;
+            }
+	    }
+
 		public ServerXObjectContainer(Guid _uid, AbstractXServer.ObjectDescriptor _descriptor)
 		{
 			m_kind = _descriptor.Kind;
@@ -402,7 +420,7 @@ namespace XTransport.Server
 		public uint GetCurrentGeneration(SessionId _sessionId)
 		{
 			int current;
-			if(m_currentVersion.TryGetValue(_sessionId, out current))
+			if(m_currentVersion.TryGetValue(_sessionId, out current) && current>=0)
 			{
 				return m_changes[_sessionId][current].ActualFrom;
 			}

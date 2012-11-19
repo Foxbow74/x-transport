@@ -47,7 +47,7 @@ namespace XTransport.Server
 			var saved = false;
 			foreach (var uid in toSave.Distinct())
 			{
-				saved = _server.Save(uid, _sessionId) | saved;
+                saved |= _server.SaveInternal(uid, _storage, _now, _sessionId);
 			}
 			return saved;
 		}

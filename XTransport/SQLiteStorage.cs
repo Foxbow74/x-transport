@@ -23,70 +23,106 @@ namespace XTransport
 
 		private static readonly Dictionary<Type, string> m_type2Tables = new Dictionary<Type, string>();
 
-		private static readonly Dictionary<Type, Func<object, IStorageValue>> m_tables2Type =
-			new Dictionary<Type, Func<object, IStorageValue>>();
+		private static readonly Dictionary<Type, Func<object, IStorageValue>> m_tables2Type = new Dictionary<Type, Func<object, IStorageValue>>();
 
-		private readonly AutoResetEvent m_autoResetEvent = new AutoResetEvent(true);
+		readonly AutoResetEvent m_autoResetEvent = new AutoResetEvent(true);
 
 		private readonly SqliteConnection m_connection;
 
 		private DbTransaction m_transaction;
 
-		static SQLiteStorage()
+		private void RegisterTypes()
 		{
-			m_type2Tables.Add(typeof (int), "ints");
-			m_type2Tables.Add(typeof (Guid), "guids");
-			m_type2Tables.Add(typeof (string), "strings");
-			m_type2Tables.Add(typeof (DateTime), "dates");
-			m_type2Tables.Add(typeof (double), "doubles");
-			m_type2Tables.Add(typeof (decimal), "decimals");
+            RegisterType(_o => 0!=(int)_o, SQL_TYPE_INTEGER, "bools");
+            RegisterType(_o => (long)_o, SQL_TYPE_INTEGER, "longs");
+            RegisterType(_o => (int)_o, SQL_TYPE_INTEGER, "ints");
+            RegisterType(_o => (byte)(int)_o, SQL_TYPE_INTEGER, "bytes");
+            RegisterType(_o => (short)_o, SQL_TYPE_INTEGER, "shorts");
+            RegisterType(_o => new Guid((string)_o), SQL_TYPE_GUID, "guids");
+            RegisterType(_o => (string) _o, SQL_TYPE_TEXT, "strings");
+            RegisterType(_o => (DateTime)_o, SQL_TYPE_DATETIME, "dates");
+            RegisterType(_o => (double)_o, SQL_TYPE_REAL, "doubles");
+            RegisterType(_o => (float)(double)_o, SQL_TYPE_REAL, "floats");
+            RegisterType(_o => (decimal)_o, SQL_TYPE_REAL, "decimals");
 
-			m_tables2Type.Add(typeof (int), _o => new StorageValue<int> {Val = (int) _o});
-			m_tables2Type.Add(typeof (Guid), _o => new StorageValue<Guid> {Val = new Guid((string) _o)});
-			m_tables2Type.Add(typeof (string), _o => new StorageValue<string> {Val = (string) _o});
-			m_tables2Type.Add(typeof (DateTime), _o => new StorageValue<DateTime> {Val = (DateTime) _o});
-			m_tables2Type.Add(typeof (double), _o => new StorageValue<double> {Val = (double) _o});
-			m_tables2Type.Add(typeof (decimal), _o => new StorageValue<decimal> {Val = Decimal.Parse((string) _o)});
+			//m_type2Tables.Add(typeof (int), "ints");
+			//m_type2Tables.Add(typeof (Guid), "guids");
+			//m_type2Tables.Add(typeof (string), "strings");
+			//m_type2Tables.Add(typeof (DateTime), "dates");
+			//m_type2Tables.Add(typeof (double), "doubles");
+			//m_type2Tables.Add(typeof(decimal), "decimals");
+			//m_type2Tables.Add(typeof(float), "floats");
+
+			//m_tables2Type.Add(typeof (int), _o => new StorageValue<int> {Val = (int) _o});
+			//m_tables2Type.Add(typeof (Guid), _o => new StorageValue<Guid> {Val = new Guid((string) _o)});
+			//m_tables2Type.Add(typeof (string), _o => new StorageValue<string> {Val = (string) _o});
+			//m_tables2Type.Add(typeof (DateTime), _o => new StorageValue<DateTime> {Val = (DateTime) _o});
+			//m_tables2Type.Add(typeof (double), _o => new StorageValue<double> {Val = (double) _o});
+			//m_tables2Type.Add(typeof(decimal), _o => new StorageValue<decimal> { Val = Decimal.Parse((string)_o) });
+			//m_tables2Type.Add(typeof(float), _o => new StorageValue<float> { Val = (float)(double)_o });
 		}
+
+		private const string SQL_TYPE_INTEGER = "INTEGER";
+		private const string SQL_TYPE_GUID = "GUID";
+		private const string SQL_TYPE_DATETIME = "DATETIME";
+		private const string SQL_TYPE_TEXT = "TEXT";
+		private const string SQL_TYPE_REAL = "REAL";
+		private const string SQL_TYPE_BLOB = "BLOB";
+
+		private void RegisterType<T>(Func<object, T> _func, string _sqliteType, string name)
+		{
+			//if(m_type2Tables.ContainsKey(typeof(T))) return;
+
+			m_type2Tables[typeof(T)] = name;
+			m_tables2Type[typeof(T)] = _o => new StorageValue<T> { Val = _func(_o) };
+			CreateCommand("CREATE TABLE IF NOT EXISTS " + name + " ( id " + _sqliteType + " NOT NULL, value INTEGER)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  " + name + "_idx ON " + name + " (id)").ExecuteNonQuery();
+		}
+
+		static readonly List<string> m_initialized = new List<string>();
 
 		public SQLiteStorage(string _dbName)
 		{
 			var cs = string.Format("BinaryGUID=True, uri=file:{0}", _dbName);
 			m_connection = new SqliteConnection(cs);
 			m_connection.Open();
-			CreateTablesIfNotExists();
+
+			//if (!m_initialized.Contains(_dbName))
+			{
+				CreateCommand("CREATE TABLE IF NOT EXISTS main ( id INTEGER PRIMARY KEY AUTOINCREMENT, uid GUID, parent GUID, kind INTEGER, field INTEGER, vfrom DATETIME NOT NULL, vtill DATETIME)").ExecuteNonQuery();
+
+				CreateCommand("CREATE INDEX IF NOT EXISTS  main_idx1 ON main (id)").ExecuteNonQuery();
+				CreateCommand("CREATE INDEX IF NOT EXISTS  main_idx2 ON main (uid)").ExecuteNonQuery();
+				CreateCommand("CREATE INDEX IF NOT EXISTS  main_idx3 ON main (parent)").ExecuteNonQuery();
+
+				RegisterTypes();
+
+				m_initialized.Add(_dbName);
+			}
 		}
 
-		private void CreateTablesIfNotExists()
-		{
-			CreateCommand("CREATE TABLE IF NOT EXISTS main ( id INTEGER PRIMARY KEY AUTOINCREMENT, uid GUID, parent GUID, kind INTEGER, field INTEGER, vfrom DATETIME NOT NULL, vtill DATETIME)").ExecuteNonQuery();
-			CreateCommand("CREATE TABLE IF NOT EXISTS ints ( id INTEGER NOT NULL, value INTEGER)").ExecuteNonQuery();
-			CreateCommand("CREATE TABLE IF NOT EXISTS guids ( id INTEGER NOT NULL, value GUID)").ExecuteNonQuery();
-			CreateCommand("CREATE TABLE IF NOT EXISTS dates ( id INTEGER NOT NULL, value DATETIME)").ExecuteNonQuery();
-			CreateCommand("CREATE TABLE IF NOT EXISTS strings ( id INTEGER NOT NULL, value TEXT)").ExecuteNonQuery();
-			CreateCommand("CREATE TABLE IF NOT EXISTS doubles ( id INTEGER NOT NULL, value REAL)").ExecuteNonQuery();
-			CreateCommand("CREATE TABLE IF NOT EXISTS decimals ( id INTEGER NOT NULL, value TEXT)").ExecuteNonQuery();
-			CreateCommand("CREATE TABLE IF NOT EXISTS blobs ( id INTEGER NOT NULL, value BLOB)").ExecuteNonQuery();
+        public void DeleteAll()
+        {
+            ExecuteNonQuery("DELETE FROM main");
+            foreach (var table in m_type2Tables.Values)
+            {
+                ExecuteNonQuery("DELETE FROM " + table);
+            }
+        }
 
-			CreateCommand("CREATE INDEX IF NOT EXISTS  main_idx1 ON main (id)").ExecuteNonQuery();
-			CreateCommand("CREATE INDEX IF NOT EXISTS  main_idx2 ON main (uid)").ExecuteNonQuery();
-			CreateCommand("CREATE INDEX IF NOT EXISTS  main_idx3 ON main (parent)").ExecuteNonQuery();
-			CreateCommand("CREATE INDEX IF NOT EXISTS  ints_idx ON ints (id)").ExecuteNonQuery();
-			CreateCommand("CREATE INDEX IF NOT EXISTS  strings_idx ON strings (id)").ExecuteNonQuery();
-			CreateCommand("CREATE INDEX IF NOT EXISTS  guids_idx ON guids (id)").ExecuteNonQuery();
-			CreateCommand("CREATE INDEX IF NOT EXISTS  dates_idx ON dates (id)").ExecuteNonQuery();
-			CreateCommand("CREATE INDEX IF NOT EXISTS  doubles_idx ON doubles (id)").ExecuteNonQuery();
-			CreateCommand("CREATE INDEX IF NOT EXISTS  decimals_idx ON decimals (id)").ExecuteNonQuery();
-			CreateCommand("CREATE INDEX IF NOT EXISTS  blobs_idx ON blobs (id)").ExecuteNonQuery();
-		}
-		#region IStorage Members
+	    public void Shrink()
+	    {
+            ExecuteNonQuery("VACUUM");
+	    }
+
+	    #region IStorage Members
 
 		public void Dispose()
 		{
 			if (m_connection.State != ConnectionState.Closed)
 			{
-				m_connection.Close();
-				m_connection.Dispose();
+                m_connection.Close();
+                m_connection.Dispose();
 			}
 		}
 
@@ -97,6 +133,7 @@ namespace XTransport
 
 		public void Delete(Guid _uid, int _field, DateTime _now)
 		{
+            Debug.WriteLine("DELETED: " + _uid);
 			ExecuteNonQuery("UPDATE main SET vtill=@till WHERE uid=@uid"
 			                , new SqliteParameter("@uid", _uid)
 							, new SqliteParameter("@till", _now));
@@ -132,11 +169,10 @@ namespace XTransport
 			return new Guid(scalar);
 		}
 
-		public IEnumerable<StorageRootObject> LoadRoot()
+	    public IEnumerable<StorageRootObject> LoadRoot()
 		{
 			var now = DateTime.Now;
-			using (
-				var rdr = CreateCommand("select * from main where parent IS NULL").ExecuteReader(CommandBehavior.CloseConnection))
+			using (var rdr = CreateCommand("select * from main where parent IS NULL").ExecuteReader(CommandBehavior.CloseConnection))
 			{
 				while (rdr.Read())
 				{
@@ -183,8 +219,11 @@ namespace XTransport
 		{
 			var vuids = new Dictionary<int, Guid>();
 			var vfields = new Dictionary<int, int>();
-			using (var rdr = CreateCommand("select * from main where parent=@parent AND vfrom<=@now AND (vtill IS NULL OR vtill>@now)", new SqliteParameter("@parent", _uid), new SqliteParameter("@now", _now)).ExecuteReader(
-					              	CommandBehavior.CloseConnection))
+			using (
+				var rdr = CreateCommand(
+					"select * from main where parent=@parent AND vfrom<=@now AND (vtill IS NULL OR vtill>@now)",
+					new SqliteParameter("@parent", _uid), new SqliteParameter("@now", _now)).ExecuteReader(
+						CommandBehavior.CloseConnection))
 			{
 				while (rdr.Read())
 				{
@@ -198,14 +237,14 @@ namespace XTransport
 					if (kind != null)
 					{
 						yield return new StorageChild
-						             	{
-						             		Kind = (int) kind,
-						             		Uid = new Guid((string) uid),
-						             		Parent = new Guid((string) parent),
-						             		Field = (int) rdr[MF_FIELD],
-											ValidFrom = (DateTime)vform,
-											ValidTill = (DateTime?)vtill,
-						             	};
+							             {
+								             Kind = (int) kind,
+								             Uid = new Guid((string) uid),
+								             Parent = new Guid((string) parent),
+								             Field = (int) rdr[MF_FIELD],
+								             ValidFrom = (DateTime) vform,
+								             ValidTill = (DateTime?) vtill,
+							             };
 					}
 					else
 					{
@@ -288,11 +327,6 @@ namespace XTransport
 		private int ExecuteNonQuery(SqliteCommand _cmd)
 		{
 			var affected = _cmd.ExecuteNonQuery();
-			//Debug.WriteLine(affected + "\t" + _cmd.CommandText);
-			//foreach (SqliteParameter parameter in _cmd.Parameters)
-			//{
-			//    Debug.WriteLine("\t" + parameter.ParameterName + "\t" + parameter.Value);
-			//}
 			if (_cmd.GetLastErrorCode() != 0)
 			{
 				RollBack();
@@ -300,7 +334,8 @@ namespace XTransport
 			}
 			return affected;
 		}
-		public int InsertMain(UplodableObject _uplodableObject, Guid _parent = default(Guid), int? _field = null)
+
+	    public int InsertMain(UplodableObject _uplodableObject, Guid _parent = default(Guid), int? _field = null)
 		{
 			var now = DateTime.Now;
 			int result;
@@ -333,8 +368,8 @@ namespace XTransport
 			public Transaction(SQLiteStorage _storage)
 			{
 				m_storage = _storage;
-				_storage.m_autoResetEvent.WaitOne();
-				_storage.m_transaction = _storage.m_connection.BeginTransaction();
+                _storage.m_autoResetEvent.WaitOne();
+                _storage.m_transaction = _storage.m_connection.BeginTransaction();
 			}
 
 			#region IDisposable Members
@@ -345,9 +380,9 @@ namespace XTransport
 				{
 					m_storage.m_transaction.Commit();
 					m_storage.m_transaction.Dispose();
-					m_storage.m_transaction = null;
+                    m_storage.m_transaction = null;
 				}
-				m_storage.m_autoResetEvent.Set();
+                m_storage.m_autoResetEvent.Set();
 			}
 
 			#endregion

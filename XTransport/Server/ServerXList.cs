@@ -32,8 +32,18 @@ namespace XTransport.Server
 						m_list.Remove(reportListItem.Uid);
 						_abstractXServer.Delete(_storage, reportListItem.Uid, _reportItem.FieldId.GetHashCode(), _now);
 						break;
+                    case EReportListItemState.ORIGINAL:
+                        if(_abstractXServer.IsShrinking)
+                        {
+                            
+                        }
+                        else
+                        {
+                            throw new ArgumentOutOfRangeException();
+                        }
+				        break;
 					default:
-						throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException();
 				}
 			}
 			return -1;
