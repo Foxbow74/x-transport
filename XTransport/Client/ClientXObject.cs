@@ -81,7 +81,19 @@ namespace XTransport.Client
 		public abstract TKind Kind { get; }
 
 		public event Action<IClientXObject<TKind>> Changed;
-		public bool IsDirty { get; private set; }
+		private bool? m_isDirty;
+		public bool IsDirty
+		{
+			get
+			{
+				return (m_isDirty??(m_isDirty=RecalcIsDirty())).Value;
+			}
+		}
+
+		private bool RecalcIsDirty()
+		{
+			return m_xValues.Values.Any(_internal => _internal.IsDirty);
+		}
 
 		#endregion
 
@@ -248,7 +260,7 @@ namespace XTransport.Client
 			if (_firstTime)
 			{
 				SubscribePersistedValuesChanges();
-				IsDirty = m_xValues.Values.Any(_internal => _internal.IsDirty);
+				m_isDirty = null;
 			}
 			foreach (var xValue in m_xValues.Values.Except(done))
 			{
@@ -262,7 +274,7 @@ namespace XTransport.Client
 			{
 				value.Revert();
 			}
-			IsDirty = false;
+			m_isDirty = false;
 		}
 
 		internal void SaveInternal()
@@ -271,7 +283,7 @@ namespace XTransport.Client
 			{
 				value.Save();
 			}
-			IsDirty = false;
+			m_isDirty = false;
 		}
 
 		private void SubscribePersistedValuesChanges()
@@ -279,7 +291,7 @@ namespace XTransport.Client
 			foreach (var value in m_xValues.Values)
 			{
 				value.Changed += XValueOnChanged;
-				value.DirtyChanged += XValueOnDirtyChanged;
+				value.DirtyChanged += UpdateDirty;
 			}
 		}
 
@@ -288,26 +300,24 @@ namespace XTransport.Client
 			foreach (var value in m_xValues.Values)
 			{
 				value.Changed -= XValueOnChanged;
-				value.DirtyChanged -= XValueOnDirtyChanged;
+				value.DirtyChanged -= UpdateDirty;
 			}
 		}
 
 		internal virtual void XValueOnChanged(IXValueInternal _value)
 		{
-			XValueOnDirtyChanged(_value);
+			UpdateDirty(_value.IsDirty);
 			OnChanged();
 		}
 
-		internal virtual void XValueOnDirtyChanged(IXValueInternal _value)
+		internal void UpdateDirty(bool _isDirty)
 		{
-			if (_value.IsDirty)
-			{
-				IsDirty = true;
-			}
-			else
-			{
-				IsDirty = m_xValues.Values.Any(_av => _av.IsDirty);
-			}
+			m_isDirty = _isDirty ? (bool?)true : null;
+		}
+
+		internal void SetIsDirty()
+		{
+			
 		}
 
 		private void OnChanged()

@@ -75,7 +75,7 @@ namespace XTransport.Client
 			m_state = EState.UNKNOWN;
 			if (!CollectionOwnerUid.Equals(Guid.Empty))
 			{
-				m_client.ClearState(CollectionOwnerUid);
+				m_client.ClearParentState(CollectionOwnerUid, m_instances.Any(_i=>_i.Value.IsDirty));
 			}
 		}
 
@@ -329,6 +329,14 @@ namespace XTransport.Client
 			foreach (var instance in m_instances.Values)
 			{
 				instance.RemovedFromCollection(_child);
+			}
+		}
+
+		public void UpdateDirty(bool _isDirty)
+		{
+			foreach (var instance in m_instances.Values)
+			{
+				instance.UpdateDirty(_isDirty);
 			}
 		}
 	}

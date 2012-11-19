@@ -15,6 +15,8 @@ namespace XTransport.WPF
 
 		#region IClientXChildObject<TKind> Members
 
+		ClientXObject<TKind> IClientXChildObject<TKind>.Parent { get { return Client.Get<TParent>(m_parentUid); } }
+
 		void IClientXChildObject<TKind>.SetParent(Guid _collectionOwner)
 		{
 			m_parentUid = _collectionOwner;
