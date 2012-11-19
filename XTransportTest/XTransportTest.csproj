@@ -83,6 +83,7 @@
     <Compile Include="TestDelete.cs" />
     <Compile Include="TestGetIsRedoEnabled.cs" />
     <Compile Include="TestLists.cs" />
+    <Compile Include="TestParentStatesChanges.cs" />
     <Compile Include="TestRedo.cs" />
     <Compile Include="TestRefs.cs" />
     <Compile Include="TestRevert.cs" />
