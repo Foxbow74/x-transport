@@ -82,32 +82,4 @@ namespace XTransportTest
 			Assert.AreEqual(false, cl.GetIsUndoEnabled(root.Uid));
 		}
 	}
-
-	[TestClass]
-	public class TestRootIsUndoEnabled : AbstractTest
-	{
-		[TestMethod]
-		public void GetRootIsUndoEnabledRootCollectionItemChanged()
-		{
-			var cl = new TstClient();
-			var root = cl.GetRoot<Root>();
-			root.Revert();
-			var a = root.AItems.First();
-			Assert.AreEqual(false, cl.GetIsUndoEnabled(cl.GetRoot<RootVM>()));
-			a.Value = 30;
-			Assert.AreEqual(true, cl.GetIsUndoEnabled(root));
-		}
-
-		[TestMethod]
-		public void GetRootIsDirtyByDefault()
-		{
-			var cl = new TstClient();
-			var root = cl.GetRoot<Root>();
-			root.Revert();
-			var refObject = root.RefItems.First();
-			Assert.AreEqual(false, cl.GetRoot<RootVM>().IsDirty);
-			refObject.ChildRef.Value = 30;
-			Assert.AreEqual(true, root.IsDirty);
-		}
-	}
 }
