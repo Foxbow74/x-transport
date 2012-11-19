@@ -64,7 +64,7 @@ namespace XTransportTest
 			Assert.AreEqual(false, root.IsDirty);
 			Assert.AreEqual(false, refObject.IsDirty);
 			a.Value = 9;
-			Assert.AreEqual(true, refObject.IsDirty);
+			Assert.AreEqual(false, refObject.IsDirty);
 			Assert.AreEqual(true, root.IsDirty);
 		}
 
@@ -79,7 +79,7 @@ namespace XTransportTest
 			Assert.AreEqual(false, cl.GetIsUndoEnabled(root));
 			Assert.AreEqual(false, cl.GetIsUndoEnabled(refObject));
 			a.Value = 9;
-			Assert.AreEqual(true, cl.GetIsUndoEnabled(refObject));
+			Assert.AreEqual(false, cl.GetIsUndoEnabled(refObject));
 			Assert.AreEqual(true, cl.GetIsUndoEnabled(root));
 		}
 
@@ -95,7 +95,7 @@ namespace XTransportTest
 			Assert.AreEqual(false, cl.GetIsRedoEnabled(refObject));
 			a.Value = 9;
 			cl.Undo(a);
-			Assert.AreEqual(true, cl.GetIsRedoEnabled(refObject));
+			Assert.AreEqual(false, cl.GetIsRedoEnabled(refObject));
 			Assert.AreEqual(true, cl.GetIsRedoEnabled(root));
 		}
 	}
