@@ -81,7 +81,6 @@ namespace XTransport.Client
 		public abstract TKind Kind { get; }
 
 		public event Action<IClientXObject<TKind>> Changed;
-		private bool? m_isDirty;
 		public bool IsDirty
 		{
 			get
@@ -90,12 +89,19 @@ namespace XTransport.Client
 			}
 		}
 
+		#endregion
+
+		private bool? m_isDirty;
+
 		private bool RecalcIsDirty()
 		{
 			return m_xValues.Values.Any(_internal => _internal.IsDirty);
 		}
 
-		#endregion
+		internal void UpdateDirty(bool _isDirty)
+		{
+			m_isDirty = _isDirty ? (bool?)true : null;
+		}
 
 		#region static part
 
@@ -308,16 +314,6 @@ namespace XTransport.Client
 		{
 			UpdateDirty(_value.IsDirty);
 			OnChanged();
-		}
-
-		internal void UpdateDirty(bool _isDirty)
-		{
-			m_isDirty = _isDirty ? (bool?)true : null;
-		}
-
-		internal void SetIsDirty()
-		{
-			
 		}
 
 		private void OnChanged()

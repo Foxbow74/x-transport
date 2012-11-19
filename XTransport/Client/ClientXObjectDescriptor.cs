@@ -234,6 +234,9 @@ namespace XTransport.Client
 			var xReport = new XReport(_xObject.Uid, changes, Kind, EState.UNDO_ABLE|EState.REVERT_ABLE);
 
 			Report.MergeChanges(xReport);
+			
+			ResetState();
+
 			foreach (var obj in m_instances.Values)
 			{
 				if (!ReferenceEquals(obj, _xObject))
@@ -338,6 +341,7 @@ namespace XTransport.Client
 			{
 				instance.UpdateDirty(_isDirty);
 			}
+			m_client.ClearParentState(CollectionOwnerUid, _isDirty);
 		}
 	}
 }
