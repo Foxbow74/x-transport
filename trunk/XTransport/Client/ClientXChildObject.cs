@@ -8,12 +8,15 @@ namespace XTransport.Client
 		private AbstractXClient<TKind> m_client;
 
 		private Guid m_parentUid;
+
 		public TParent Parent
 		{
 			get { return m_client.Get<TParent>(m_parentUid); }
 		}
 
 		#region IClientXChildObject<TKind> Members
+
+		ClientXObject<TKind> IClientXChildObject<TKind>.Parent { get { return m_client.Get<TParent>(m_parentUid); } }
 
 		void IClientXChildObject<TKind>.SetParent(Guid _collectionOwner)
 		{

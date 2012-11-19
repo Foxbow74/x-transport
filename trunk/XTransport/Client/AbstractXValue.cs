@@ -7,7 +7,7 @@ namespace XTransport.Client
 		#region IXValueInternal Members
 
 		public event Action<IXValueInternal> Changed;
-		public event Action<IXValueInternal> DirtyChanged;
+		public event Action<bool> DirtyChanged;
 
 
 		public abstract AbstractXReportItem GetXReportItem(int _xname);
@@ -36,7 +36,7 @@ namespace XTransport.Client
 		{
 			if (DirtyChanged != null)
 			{
-				DirtyChanged(this);
+				DirtyChanged(IsDirty);
 			}
 		}
 	}

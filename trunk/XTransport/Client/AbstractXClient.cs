@@ -363,12 +363,13 @@ namespace XTransport.Client
 			return false;
 		}
 
-		internal void ClearState(Guid _parentUid)
+		internal void ClearParentState(Guid _parentUid, bool _isDirty)
 		{
 			ClientXObjectDescriptor<TKind> descriptor;
 			if (m_descriptors.TryGetValue(_parentUid, out descriptor))
 			{
 				descriptor.ResetState();
+				descriptor.UpdateDirty(_isDirty);	
 			}
 		}
 

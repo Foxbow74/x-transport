@@ -13,6 +13,6 @@ namespace XTransport.Client
 		void Save();
 
 		event Action<IXValueInternal> Changed;
-		event Action<IXValueInternal> DirtyChanged;
+		event Action<bool> DirtyChanged;
 	}
 }
