@@ -41,7 +41,7 @@ namespace XTransport
             RegisterType(_o => new Guid((string)_o), SQL_TYPE_GUID, "guids");
             RegisterType(_o => (string) _o, SQL_TYPE_TEXT, "strings");
             RegisterType(_o => (DateTime)_o, SQL_TYPE_DATETIME, "dates");
-            RegisterType(_o => (double)_o, SQL_TYPE_REAL, "doubles");
+            RegisterType(_o => (_o is int)?(int)_o:(double) _o, SQL_TYPE_REAL, "doubles");
             RegisterType(_o => (float)(double)_o, SQL_TYPE_REAL, "floats");
             RegisterType(_o => (decimal)_o, SQL_TYPE_REAL, "decimals");
 
