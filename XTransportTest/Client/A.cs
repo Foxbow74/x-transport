@@ -9,6 +9,9 @@ namespace XTransportTest.Client
 
 		[X("IVAL")] private IXValue<int> m_value;
 
+		[X("BVAL")]
+		private IXValue<byte[]> m_bytes;
+
 		public override ETestKind Kind
 		{
 			get { return ETestKind.A; }
@@ -18,6 +21,12 @@ namespace XTransportTest.Client
 		{
 			get { return m_value.Value; }
 			set { m_value.Value = value; }
+		}
+
+		public byte[] Bytes
+		{
+			get { return m_bytes.Value; }
+			set { m_bytes.Value = value; }
 		}
 	}
 }
