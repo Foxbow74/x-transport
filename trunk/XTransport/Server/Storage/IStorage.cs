@@ -12,7 +12,7 @@ namespace XTransport.Server.Storage
 		
 		AbstractXServer.ObjectDescriptor LoadObjectCharacteristics(Guid _uid, DateTime _now = default(DateTime));
 
-		IEnumerable<IStorageRecord> LoadObject(Guid _uid, DateTime _now);
+		IEnumerable<IStorageRecord> LoadObject(Guid _uid, DateTime _now=default(DateTime));
 
 		int InsertMain(Guid _uid, int _kind, DateTime _now, Guid _parent = default(Guid), int? _field = null);
 

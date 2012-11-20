@@ -84,7 +84,7 @@ namespace XTransport.Server
 				{
 					var descriptor = st.LoadObjectCharacteristics(_uid);
 					_xObject = new ServerXObjectContainer(_uid, descriptor);
-					var records = st.LoadObject(_uid, DateTime.Now).ToList();
+					var records = st.LoadObject(_uid).ToList();
 					foreach (var record in records)
 					{
 						if (record is StorageChild)

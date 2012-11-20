@@ -22,7 +22,8 @@ namespace XTransport
 		private const int MF_TILL = 6;
 
 		private static readonly Dictionary<Type, string> m_type2Tables = new Dictionary<Type, string>();
-
+		private static readonly Dictionary<int, Type> m_typeIndex2Type = new Dictionary<int, Type>();
+		private static readonly Dictionary<Type, int> m_type2TypeIndex = new Dictionary<Type, int>();
 		private static readonly Dictionary<Type, Func<object, IStorageValue>> m_tables2Type = new Dictionary<Type, Func<object, IStorageValue>>();
 
 		readonly AutoResetEvent m_autoResetEvent = new AutoResetEvent(true);
@@ -33,33 +34,18 @@ namespace XTransport
 
 		private void RegisterTypes()
 		{
-            RegisterType(_o => 0!=(int)_o, SQL_TYPE_INTEGER, "bools");
-            RegisterType(_o => (long)_o, SQL_TYPE_INTEGER, "longs");
-            RegisterType(_o => (int)_o, SQL_TYPE_INTEGER, "ints");
-            RegisterType(_o => (byte)(int)_o, SQL_TYPE_INTEGER, "bytes");
-            RegisterType(_o => (short)_o, SQL_TYPE_INTEGER, "shorts");
-            RegisterType(_o => new Guid((string)_o), SQL_TYPE_GUID, "guids");
-            RegisterType(_o => (string) _o, SQL_TYPE_TEXT, "strings");
-            RegisterType(_o => (DateTime)_o, SQL_TYPE_DATETIME, "dates");
-            RegisterType(_o => (_o is int)?(int)_o:(double) _o, SQL_TYPE_REAL, "doubles");
-            RegisterType(_o => (float)(double)_o, SQL_TYPE_REAL, "floats");
-            RegisterType(_o => (decimal)_o, SQL_TYPE_REAL, "decimals");
-
-			//m_type2Tables.Add(typeof (int), "ints");
-			//m_type2Tables.Add(typeof (Guid), "guids");
-			//m_type2Tables.Add(typeof (string), "strings");
-			//m_type2Tables.Add(typeof (DateTime), "dates");
-			//m_type2Tables.Add(typeof (double), "doubles");
-			//m_type2Tables.Add(typeof(decimal), "decimals");
-			//m_type2Tables.Add(typeof(float), "floats");
-
-			//m_tables2Type.Add(typeof (int), _o => new StorageValue<int> {Val = (int) _o});
-			//m_tables2Type.Add(typeof (Guid), _o => new StorageValue<Guid> {Val = new Guid((string) _o)});
-			//m_tables2Type.Add(typeof (string), _o => new StorageValue<string> {Val = (string) _o});
-			//m_tables2Type.Add(typeof (DateTime), _o => new StorageValue<DateTime> {Val = (DateTime) _o});
-			//m_tables2Type.Add(typeof (double), _o => new StorageValue<double> {Val = (double) _o});
-			//m_tables2Type.Add(typeof(decimal), _o => new StorageValue<decimal> { Val = Decimal.Parse((string)_o) });
-			//m_tables2Type.Add(typeof(float), _o => new StorageValue<float> { Val = (float)(double)_o });
+            RegisterType(_o => 0!=(int)_o, SQL_TYPE_INTEGER, "bools", -1);
+            RegisterType(_o => (long)_o, SQL_TYPE_INTEGER, "longs", -2);
+            RegisterType(_o => (int)_o, SQL_TYPE_INTEGER, "ints", -3);
+            RegisterType(_o => (byte)(int)_o, SQL_TYPE_INTEGER, "bytes", -4);
+            RegisterType(_o => (short)_o, SQL_TYPE_INTEGER, "shorts", -5);
+            RegisterType(_o => new Guid((string)_o), SQL_TYPE_GUID, "guids", -6);
+            RegisterType(_o => (string) _o, SQL_TYPE_TEXT, "strings", -7);
+            RegisterType(_o => (DateTime)_o, SQL_TYPE_DATETIME, "dates",-8);
+            RegisterType(_o => (_o is int)?(int)_o:(double) _o, SQL_TYPE_REAL, "doubles", -9);
+            RegisterType(_o => (float)(double)_o, SQL_TYPE_REAL, "floats", -10);
+			RegisterType(_o => (decimal)_o, SQL_TYPE_REAL, "decimals", -11);
+			RegisterType(_o => (byte[])_o, SQL_TYPE_BLOB, "blobs", -12);
 		}
 
 		private const string SQL_TYPE_INTEGER = "INTEGER";
@@ -69,14 +55,14 @@ namespace XTransport
 		private const string SQL_TYPE_REAL = "REAL";
 		private const string SQL_TYPE_BLOB = "BLOB";
 
-		private void RegisterType<T>(Func<object, T> _func, string _sqliteType, string name)
+		private void RegisterType<T>(Func<object, T> _func, string _sqliteType, string _name, int _typeIndex)
 		{
-			//if(m_type2Tables.ContainsKey(typeof(T))) return;
-
-			m_type2Tables[typeof(T)] = name;
+			m_type2Tables[typeof(T)] = _name;
+			m_type2TypeIndex[typeof(T)] = _typeIndex;
+			m_typeIndex2Type[_typeIndex] = typeof(T);
 			m_tables2Type[typeof(T)] = _o => new StorageValue<T> { Val = _func(_o) };
-			CreateCommand("CREATE TABLE IF NOT EXISTS " + name + " ( id " + _sqliteType + " NOT NULL, value INTEGER)").ExecuteNonQuery();
-			CreateCommand("CREATE INDEX IF NOT EXISTS  " + name + "_idx ON " + name + " (id)").ExecuteNonQuery();
+			CreateCommand("CREATE TABLE IF NOT EXISTS " + _name + " ( id " + _sqliteType + " NOT NULL, value INTEGER)").ExecuteNonQuery();
+			CreateCommand("CREATE INDEX IF NOT EXISTS  " + _name + "_idx ON " + _name + " (id)").ExecuteNonQuery();
 		}
 
 		static readonly List<string> m_initialized = new List<string>();
@@ -128,7 +114,7 @@ namespace XTransport
 
 		int IStorage.InsertValue<T>(Guid _uid, int _field, T _value, int? _lastId, DateTime _now)
 		{
-			return InsertValueInternal(_lastId, _uid, _field, m_type2Tables[typeof (T)], _value);
+			return InsertValueInternal(_lastId, _uid, _field, m_type2Tables[typeof (T)], _value, m_type2TypeIndex[typeof(T)]);
 		}
 
 		public void Delete(Guid _uid, int _field, DateTime _now)
@@ -171,6 +157,7 @@ namespace XTransport
 
 	    public IEnumerable<StorageRootObject> LoadRoot()
 		{
+			var lst = new List<StorageRootObject>();
 			var now = DateTime.Now;
 			using (var rdr = CreateCommand("select * from main where parent IS NULL").ExecuteReader(CommandBehavior.CloseConnection))
 			{
@@ -183,16 +170,17 @@ namespace XTransport
 					}
 					var kind = rdr[MF_KIND];
 					var uid = rdr[MF_UID];
-					yield return new StorageRootObject {Kind = (int) kind, Uid = new Guid((string) uid)};
+					lst.Add(new StorageRootObject {Kind = (int) kind, Uid = new Guid((string) uid)});
 				}
 			}
+	    	return lst;
 		}
 
 		public AbstractXServer.ObjectDescriptor LoadObjectCharacteristics(Guid _uid, DateTime _now = default(DateTime))
 		{
 			if(_now==default(DateTime))
 			{
-				using (var rdr = CreateCommand("select kind, vfrom, vtill from main where uid=@uid", new SqliteParameter("@uid", _uid)).ExecuteReader(CommandBehavior.CloseConnection))
+				using (var rdr = CreateCommand("select kind, vfrom, vtill from main where uid=@uid and vtill IS NULL", new SqliteParameter("@uid", _uid)).ExecuteReader(CommandBehavior.CloseConnection))
 				{
 					while (rdr.Read())
 					{
@@ -215,30 +203,38 @@ namespace XTransport
 			throw new ApplicationException("Object not found UID=" + _uid);
 		}
 
-		public IEnumerable<IStorageRecord> LoadObject(Guid _uid, DateTime _now)
+		public IEnumerable<IStorageRecord> LoadObject(Guid _uid, DateTime _now=default(DateTime))
 		{
 			var vuids = new Dictionary<int, Guid>();
 			var vfields = new Dictionary<int, int>();
-			using (
-				var rdr = CreateCommand(
-					"select * from main where parent=@parent AND vfrom<=@now AND (vtill IS NULL OR vtill>@now)",
-					new SqliteParameter("@parent", _uid), new SqliteParameter("@now", _now)).ExecuteReader(
-						CommandBehavior.CloseConnection))
+			var vfieldType = new Dictionary<int, int>();
+			SqliteCommand cmd;
+			if(_now==default(DateTime))
+			{
+				cmd = CreateCommand("select * from main where parent=@parent AND vtill IS NULL", new SqliteParameter("@parent", _uid), new SqliteParameter("@now", _now));
+			}
+			else
+			{
+				cmd = CreateCommand("select * from main where parent=@parent AND vfrom<=@now AND (vtill IS NULL OR vtill<@now)", new SqliteParameter("@parent", _uid), new SqliteParameter("@now", _now));
+			}
+			
+			using (var rdr = cmd.ExecuteReader(CommandBehavior.CloseConnection))
 			{
 				while (rdr.Read())
 				{
 					var parent = rdr[MF_PARENT];
-					var kind = rdr[MF_KIND];
+					var preKind = rdr[MF_KIND];
+					var kind = preKind==null?0:(int)preKind;
 					var uid = rdr[MF_UID];
 					var vform = rdr[MF_FROM];
 					var vtill = rdr[MF_TILL];
 
 
-					if (kind != null)
+					if (kind>0)
 					{
 						yield return new StorageChild
 							             {
-								             Kind = (int) kind,
+								             Kind = kind,
 								             Uid = new Guid((string) uid),
 								             Parent = new Guid((string) parent),
 								             Field = (int) rdr[MF_FIELD],
@@ -251,27 +247,22 @@ namespace XTransport
 						var id = (int) rdr[F_ID];
 						vuids.Add(id, new Guid((string) parent));
 						vfields.Add(id, (int) rdr[MF_FIELD]);
+						vfieldType.Add(id, kind);
 					}
 				}
 			}
 
 			foreach (var vfield in vfields)
 			{
-				foreach (var table in m_type2Tables)
-				{
-					var obj = CreateCommand("select value from " + table.Value + " where id=" + vfield.Key).ExecuteScalar();
-					if (obj != null)
-					{
-						var id = vfield.Key;
-						var val = m_tables2Type[table.Key](obj);
-						val.Id = vfield.Key;
-						val.Field = vfield.Value;
-						val.Owner = vuids[id];
-						val.OldId = id;
-						yield return val;
-						break;
-					}
-				}
+				var type = m_typeIndex2Type[vfieldType[vfield.Key]];
+				var obj = CreateCommand(string.Format("select value from {0} where id={1} limit 1", m_type2Tables[type], vfield.Key)).ExecuteScalar();
+				var id = vfield.Key;
+				var val = m_tables2Type[type](obj);
+				val.Id = vfield.Key;
+				val.Field = vfield.Value;
+				val.Owner = vuids[id];
+				val.OldId = id;
+				yield return val;
 			}
 		}
 
@@ -284,7 +275,7 @@ namespace XTransport
 			m_transaction = null;
 		}
 
-		private int InsertValueInternal<T>(int? _lastId, Guid _uid, int _field, string _tbl, T _value)
+		private int InsertValueInternal<T>(int? _lastId, Guid _uid, int _field, string _tbl, T _value, int _typeIndex)
 		{
 			var till = DateTime.Now;
 			if (_lastId.HasValue)
@@ -292,9 +283,11 @@ namespace XTransport
 				ExecuteInsertOrUpdate("UPDATE main SET vtill=@till WHERE id=@lastId", new SqliteParameter("@till", till),
 				                      new SqliteParameter("@lastId", _lastId.Value));
 			}
-			var id = ExecuteInsertOrUpdate("INSERT INTO main (parent, field, vfrom) VALUES (@uid, @field, @from)",
-			                                             new SqliteParameter("@uid", _uid), new SqliteParameter("@field", _field),
-			                                             new SqliteParameter("@from", till));
+			var id = ExecuteInsertOrUpdate("INSERT INTO main (parent, field, vfrom, kind) VALUES (@uid, @field, @from, @kind)",
+			                                             new SqliteParameter("@uid", _uid), 
+														 new SqliteParameter("@field", _field),
+			                                             new SqliteParameter("@from", till),
+														 new SqliteParameter("@kind", _typeIndex));
 
 			ExecuteInsertOrUpdate(string.Format("INSERT INTO {0} (id, value) VALUES ({1}, @value)", _tbl, id), new SqliteParameter("@value", _value));
 			return id;
