@@ -20,5 +20,5 @@ I think that examples will help me to open whole potential of the X-Transport.
  * [Root]
  * [ClientXObject]
  * [XValueAttribute]
- * [IXValue<>]
- * [ICollection<>]
+ * [IXValue]
+ * [ICollection]
