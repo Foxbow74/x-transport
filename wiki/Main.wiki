@@ -1,3 +1,4 @@
+#labels Featured
 The X-Transport library allows you to develop a data access part as fast as possible.
 
 Your system should support NET 4.0
@@ -15,9 +16,9 @@ I think that examples will help me to open whole potential of the X-Transport.
 
 = Parts =
  * [Kind]
+ * [Root]
  * [AbstractXServer]
  * [AbstractXClient]
- * [Root]
  * [ClientXObject]
  * [XValueAttribute]
  * [IXValue]
