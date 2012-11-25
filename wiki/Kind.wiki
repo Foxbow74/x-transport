@@ -4,15 +4,15 @@ Have matter only integer value of this member.
 
 =Example=
 <code language="cs">
-enum EStoreKind
-{
-	ALL = 0,
-        MONSTER_INFO = 1,
-        TILE_INFO = 2,
-        TILE_SET = 3,
-        NICKS_INFO = 4,
-        TERRAIN_SET = 5,
-        COLOR = 6,
-        THING_INFO = 7
-}
+	enum EStoreKind
+	{
+		ALL,
+		MONSTER_INFO,
+		TILE_INFO,
+		TILE_SET,
+		NICKS_INFO,
+		TERRAIN_SET,
+		COLOR,
+		THING_INFO,
+	}
 </code>
