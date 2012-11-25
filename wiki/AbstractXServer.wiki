@@ -1,0 +1,6 @@
+= AbstractXServer =
+
+You should override only one abstract method in your server implementaion:
+*  IStorage CreateStorage();
+
+
