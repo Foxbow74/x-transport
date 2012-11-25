@@ -1,4 +1,6 @@
 = AbstractXServer =
 
 You should override only one abstract method in your server implementaion:
- *  IStorage CreateStorage();
+ *  [IStorage] CreateStorage()
+
+Now X-Transport has only one class that implements interface [IStorage]. I is [SQLiteStorage]
