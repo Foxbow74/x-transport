@@ -1,0 +1,12 @@
+The X-Transport library allows you to develop a data access part as fast as possible.
+
+= Features =
+ * Supports client-server architecture, also allow to locate server and client in one app.
+ * Data mapping description on a client side only.
+ * The journaling. You can get all data on any moment of history.
+ * The built-in version. Allow you to undo/redo/revert each change.
+ * Multy-user. Each user can connect to the server by the one or multiple sessions.
+ * "Mirroring". Allow to work with object by some different types.
+ * Compatibility. You can change your storeable object but database wont stay incompatible.
+
+I think that examples will help me to open whole potential of the X-Transport.
