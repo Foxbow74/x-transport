@@ -16,9 +16,9 @@ I think that examples will help me to open whole potential of the X-Transport.
 
 = Parts =
  * [Kind]
- * [Root]
  * [AbstractXServer]
  * [AbstractXClient]
+ * [Root]
  * [ClientXObject]
  * [XValueAttribute]
  * [IXValue]
