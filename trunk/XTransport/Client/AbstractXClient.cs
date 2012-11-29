@@ -192,6 +192,20 @@ namespace XTransport.Client
 			return GetInternal<TO>(_uid, null);
 		}
 
+		public ClientXObject<TKind> GetByType(Type _type,Guid _uid) 
+		{
+			if(typeof(ClientXObject<TKind>).IsAssignableFrom(_type))
+			{
+				var generigGet = GetType().GetMethod("Get");
+				var method = generigGet.MakeGenericMethod(_type);
+				return (ClientXObject<TKind>)method.Invoke(this, new object[] { _uid });
+			}
+			else
+			{
+				throw new ApplicationException("!!");
+			}
+		}
+
 		internal TO GetInternal<TO>(Guid _uid, IXObjectFactory<TKind> _factory, Guid _collectionOwnerUid)
 			where TO : ClientXObject<TKind>
 		{

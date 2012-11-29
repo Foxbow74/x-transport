@@ -62,7 +62,7 @@ namespace XTransport.Server.Storage
 
 		#endregion
 
-		public void SaveFields(SQLiteStorage _storage, DateTime _now)
+		public void SaveFields(IStorage _storage, DateTime _now)
 		{
 			foreach (var xValue in m_xValues)
 			{
