@@ -22,9 +22,9 @@ namespace XTransport
 
 	public class XFactoryAttribute : Attribute
 	{
-		public XFactoryAttribute(Type _factryType)
+		public XFactoryAttribute(Type _factoryType)
 		{
-			FactoryType = _factryType;
+			FactoryType = _factoryType;
 		}
 
 		public Type FactoryType { get; private set; }

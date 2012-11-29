@@ -138,8 +138,7 @@ namespace XTransport.Client
 				{
 					if (xFactoryAttribute == null)
 					{
-						throw new ApplicationException(string.Format("Not specified XFactoryAttribute for {0} of type {1}",
-						                                             fieldInfo.FieldType.Name, fieldInfo.DeclaringType.Name));
+						throw new ApplicationException(string.Format("Not specified XFactoryAttribute for field {1}(ICollection<{2}>)  in class {0}", fieldInfo.DeclaringType.Name, xFieldInfo.Field.Name, genericArgumentType.Name));
 					}
 					xFieldInfo.Factory = (IXObjectFactory<TKind>) Activator.CreateInstance(xFactoryAttribute.FactoryType);
 				}
@@ -190,9 +189,8 @@ namespace XTransport.Client
 
 				if (constructor == null)
 				{
-					throw new ApplicationException(string.Format("Can't get default constructor or factory for {0} of type {1}",
-					                                             fieldInfo.FieldType.Name,
-					                                             fieldInfo.DeclaringType.Name));
+					throw new ApplicationException(string.Format("Can't get default constructor or factory {0}",
+																 xFactoryAttribute.FactoryType.Name));
 				}
 
 				xFieldInfo.Constructor = constructor;
