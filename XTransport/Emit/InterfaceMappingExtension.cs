@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace XTransport
+namespace XTransport.Emit
 {
 	public static class InterfaceMappingExtension
 	{
