@@ -44,7 +44,11 @@ namespace XTransport
             RegisterType(_o => (DateTime)_o, SQL_TYPE_DATETIME, "dates",-8);
             RegisterType(_o => (_o is int)?(int)_o:(double) _o, SQL_TYPE_REAL, "doubles", -9);
             RegisterType(_o => (float)(double)_o, SQL_TYPE_REAL, "floats", -10);
-			RegisterType(_o => (decimal)_o, SQL_TYPE_REAL, "decimals", -11);
+			RegisterType(_o =>
+				             {
+								 if (_o is int) return (decimal)(int)_o;
+								 return (decimal)_o;
+				             }, SQL_TYPE_REAL, "decimals", -11);
 			RegisterType(_o => (byte[])_o, SQL_TYPE_BLOB, "blobs", -12);
 		}
 
