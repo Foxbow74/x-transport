@@ -51,7 +51,7 @@ namespace XTransport
 
 		public override string ToString()
 		{
-			return string.Format("{0} Itms:{1} ({2})", ActualFrom, Items.Count, Uid);
+			return string.Format("xreport: {0} itms:{1} ({2})", ActualFrom, Items.Count, Uid);
 		}
 
 		public void UpdateAccordingNewValues(Dictionary<int, IServerXValue> _xValues, XReport _reverseReport)
