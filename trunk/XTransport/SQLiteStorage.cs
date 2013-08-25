@@ -65,7 +65,8 @@ namespace XTransport
 			m_type2TypeIndex[typeof(T)] = _typeIndex;
 			m_typeIndex2Type[_typeIndex] = typeof(T);
 			m_tables2Type[typeof(T)] = _o => new StorageValue<T> { Val = _func(_o) };
-			CreateCommand("CREATE TABLE IF NOT EXISTS " + _name + " ( id " + _sqliteType + " NOT NULL, value INTEGER)").ExecuteNonQuery();
+			//CreateCommand("CREATE TABLE IF NOT EXISTS " + _name + " ( id " + _sqliteType + " NOT NULL, value INTEGER)").ExecuteNonQuery();
+			CreateCommand("CREATE TABLE IF NOT EXISTS " + _name + " ( id INTEGER NOT NULL, value " + _sqliteType + " NOT NULL)").ExecuteNonQuery();
 			CreateCommand("CREATE INDEX IF NOT EXISTS  " + _name + "_idx ON " + _name + " (id)").ExecuteNonQuery();
 		}
 
