@@ -119,6 +119,7 @@ namespace XTransport.Client
 			if (!m_dict.ContainsKey(_item.Uid))
 			{
 				m_dict.Add(_item.Uid, (T) _item);
+				_item.SetClientInternal(m_client);
 				UpdateVM(() => m_observableCollection.Add((T) _item));
 			}
 		}
