@@ -197,7 +197,6 @@ namespace XTransport.WPF
 		/// override this property's getter to return true.
 		/// </summary>
 		protected virtual bool ThrowOnInvalidPropertyName { get; private set; }
-
 #endif
 
 		#endregion
